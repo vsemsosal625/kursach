@@ -8,11 +8,11 @@ $pdo = getDB();
 $userId = $_SESSION['user_id'];
 $success = '';
 $error = '';
+$activeTab = 'data';
 
-$stmt = $pdo->prepare("SELECT * FROM user WHERE id_user = ?");
+$stmt = $pdo->prepare("SELECT * FROM `user` WHERE id_user = ?");
 $stmt->execute([$userId]);
 $user = $stmt->fetch();
-
 if (!$user) { session_destroy(); header('Location: auth.php'); exit; }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
@@ -21,26 +21,68 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $surname = trim($_POST['surname'] ?? '');
         $patronymic = trim($_POST['patronymic'] ?? '');
         $phone = trim($_POST['phone'] ?? '');
-        $email = trim($_POST['email'] ?? '');
-
-        if (empty($name) || empty($surname) || empty($email)) {
-            $error = 'Заполните все обязательные поля';
+        if (empty($name) || empty($surname)) {
+            $error = 'Заполните имя и фамилию';
         } else {
             try {
-                $stmt = $pdo->prepare("UPDATE user SET name = ?, surname = ?, patronymic = ?, phone = ?, email = ? WHERE id_user = ?");
-                $stmt->execute([$name, $surname, $patronymic, $phone, $email, $userId]);
+                $stmt = $pdo->prepare("UPDATE `user` SET name = ?, surname = ?, patronymic = ?, phone = ? WHERE id_user = ?");
+                $stmt->execute([$name, $surname, $patronymic, $phone, $userId]);
                 $success = 'Профиль успешно обновлён';
-                $_SESSION['user_name'] = $name;
-                $user['name'] = $name; $user['surname'] = $surname; $user['patronymic'] = $patronymic; $user['phone'] = $phone; $user['email'] = $email;
+                $user['name'] = $name; $user['surname'] = $surname; $user['patronymic'] = $patronymic; $user['phone'] = $phone;
             } catch (Exception $e) {
                 $error = 'Ошибка обновления: ' . $e->getMessage();
             }
         }
+    } elseif ($_POST['action'] === 'change_login') {
+        $activeTab = 'security';
+        $newLogin = trim($_POST['login'] ?? '');
+        if (empty($newLogin)) {
+            $error = 'Введите новый логин';
+        } elseif (mb_strlen($newLogin) < 3) {
+            $error = 'Логин должен быть не менее 3 символов';
+        } else {
+            $chk = $pdo->prepare("SELECT id_user FROM `user` WHERE login = ? AND id_user <> ?");
+            $chk->execute([$newLogin, $userId]);
+            if ($chk->fetch()) {
+                $error = 'Такой логин уже занят';
+            } else {
+                try {
+                    $stmt = $pdo->prepare("UPDATE `user` SET login = ? WHERE id_user = ?");
+                    $stmt->execute([$newLogin, $userId]);
+                    $_SESSION['user_login'] = $newLogin;
+                    $user['login'] = $newLogin;
+                    $success = 'Логин успешно изменён';
+                } catch (Exception $e) {
+                    $error = 'Ошибка смены логина: ' . $e->getMessage();
+                }
+            }
+        }
+    } elseif ($_POST['action'] === 'change_email') {
+        $activeTab = 'security';
+        $newEmail = trim($_POST['email'] ?? '');
+        if (empty($newEmail) || !filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
+            $error = 'Введите корректный email';
+        } else {
+            $chk = $pdo->prepare("SELECT id_user FROM `user` WHERE email = ? AND id_user <> ?");
+            $chk->execute([$newEmail, $userId]);
+            if ($chk->fetch()) {
+                $error = 'Этот email уже используется';
+            } else {
+                try {
+                    $stmt = $pdo->prepare("UPDATE `user` SET email = ? WHERE id_user = ?");
+                    $stmt->execute([$newEmail, $userId]);
+                    $user['email'] = $newEmail;
+                    $success = 'Email успешно изменён';
+                } catch (Exception $e) {
+                    $error = 'Ошибка смены email: ' . $e->getMessage();
+                }
+            }
+        }
     } elseif ($_POST['action'] === 'change_password') {
+        $activeTab = 'security';
         $currentPassword = $_POST['current_password'] ?? '';
         $newPassword = $_POST['new_password'] ?? '';
         $confirmPassword = $_POST['confirm_password'] ?? '';
-
         if (empty($currentPassword) || empty($newPassword) || empty($confirmPassword)) {
             $error = 'Заполните все поля';
         } elseif ($newPassword !== $confirmPassword) {
@@ -52,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         } else {
             try {
                 $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-                $stmt = $pdo->prepare("UPDATE user SET password = ? WHERE id_user = ?");
+                $stmt = $pdo->prepare("UPDATE `user` SET password = ? WHERE id_user = ?");
                 $stmt->execute([$hashedPassword, $userId]);
                 $success = 'Пароль успешно изменён';
             } catch (Exception $e) {
@@ -82,6 +124,8 @@ require_once 'includes/header.php';
 .profile-content { background: linear-gradient(135deg, #1b2838 0%, #2a475e 100%); border: 1px solid #36414d; border-radius: 12px; padding: 30px; }
 .profile-content .section-title { color: #fff; font-size: 20px; font-weight: 600; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
 .profile-content .section-title i { color: #3b82f6; }
+.security-block { padding-bottom: 25px; margin-bottom: 25px; border-bottom: 1px solid #36414d; }
+.security-block:last-child { padding-bottom: 0; margin-bottom: 0; border-bottom: none; }
 .profile-content .form-group { margin-bottom: 20px; }
 .profile-content .form-group label { display: block; color: #acb2b8; font-size: 14px; margin-bottom: 8px; font-weight: 500; }
 .profile-content .form-control { background: rgba(27,40,56,0.8); border: 2px solid #36414d; color: #e0e0e0; padding: 12px 16px; border-radius: 8px; font-size: 15px; transition: all 0.3s; width: 100%; }
@@ -109,15 +153,15 @@ require_once 'includes/header.php';
     <div class="profile-sidebar">
         <div class="avatar-container"><i class="fas fa-user"></i></div>
         <div class="profile-name"><?= htmlspecialchars(($user['name'] ?? '') . ' ' . ($user['surname'] ?? '')) ?></div>
-        <div class="profile-email"><?= htmlspecialchars($user['email'] ?? '') ?></div>
+        <div class="profile-email"><i class="fas fa-at me-1"></i><?= htmlspecialchars($user['login'] ?? '') ?></div>
         <div class="profile-nav">
-            <button type="button" class="profile-nav-btn active" onclick="showTab('data', this)"><i class="fas fa-user"></i> Мои данные</button>
-            <button type="button" class="profile-nav-btn" onclick="showTab('security', this)"><i class="fas fa-shield-alt"></i> Безопасность</button>
+            <button type="button" class="profile-nav-btn <?= $activeTab === 'data' ? 'active' : '' ?>" onclick="showTab('data', this)"><i class="fas fa-user"></i> Мои данные</button>
+            <button type="button" class="profile-nav-btn <?= $activeTab === 'security' ? 'active' : '' ?>" onclick="showTab('security', this)"><i class="fas fa-shield-alt"></i> Безопасность</button>
         </div>
     </div>
 
     <div class="profile-content">
-        <div id="tab-data" class="tab-content active">
+        <div id="tab-data" class="tab-content <?= $activeTab === 'data' ? 'active' : '' ?>">
             <h2 class="section-title"><i class="fas fa-user-edit"></i> Редактирование профиля</h2>
             <form method="POST">
                 <input type="hidden" name="action" value="update_profile">
@@ -126,22 +170,41 @@ require_once 'includes/header.php';
                     <div class="form-group"><label>Фамилия <span style="color:#ef4444;">*</span></label><input type="text" name="surname" class="form-control" value="<?= htmlspecialchars($user['surname'] ?? '') ?>" required></div>
                 </div>
                 <div class="form-group"><label>Отчество</label><input type="text" name="patronymic" class="form-control" value="<?= htmlspecialchars($user['patronymic'] ?? '') ?>"></div>
-                <div class="form-group"><label>Электронная почта <span style="color:#ef4444;">*</span></label><input type="email" name="email" class="form-control" value="<?= htmlspecialchars($user['email'] ?? '') ?>" required></div>
                 <div class="form-group"><label>Телефон</label><input type="tel" name="phone" class="form-control" value="<?= htmlspecialchars($user['phone'] ?? '') ?>" placeholder="+7 (999) 999-99-99"></div>
                 <div class="form-group"><label>Дата регистрации</label><input type="text" class="form-control" value="<?= !empty($user['registration_date']) ? date('d.m.Y', strtotime($user['registration_date'])) : '—' ?>" disabled></div>
                 <button type="submit" class="btn-save"><i class="fas fa-save me-2"></i>Сохранить изменения</button>
             </form>
         </div>
 
-        <div id="tab-security" class="tab-content">
-            <h2 class="section-title"><i class="fas fa-lock"></i> Смена пароля</h2>
-            <form method="POST">
-                <input type="hidden" name="action" value="change_password">
-                <div class="form-group"><label>Текущий пароль</label><input type="password" name="current_password" class="form-control" required></div>
-                <div class="form-group"><label>Новый пароль</label><input type="password" name="new_password" class="form-control" required minlength="6"><small style="color:#8f98a0;font-size:12px;">Минимум 6 символов</small></div>
-                <div class="form-group"><label>Подтвердите новый пароль</label><input type="password" name="confirm_password" class="form-control" required minlength="6"></div>
-                <button type="submit" class="btn-save"><i class="fas fa-key me-2"></i>Сменить пароль</button>
-            </form>
+        <div id="tab-security" class="tab-content <?= $activeTab === 'security' ? 'active' : '' ?>">
+            <div class="security-block">
+                <h2 class="section-title"><i class="fas fa-at"></i> Смена логина</h2>
+                <form method="POST">
+                    <input type="hidden" name="action" value="change_login">
+                    <div class="form-group"><label>Логин (используется для входа)</label><input type="text" name="login" class="form-control" value="<?= htmlspecialchars($user['login'] ?? '') ?>" required minlength="3"></div>
+                    <button type="submit" class="btn-save"><i class="fas fa-save me-2"></i>Сохранить логин</button>
+                </form>
+            </div>
+
+            <div class="security-block">
+                <h2 class="section-title"><i class="fas fa-envelope"></i> Смена почты</h2>
+                <form method="POST">
+                    <input type="hidden" name="action" value="change_email">
+                    <div class="form-group"><label>Электронная почта</label><input type="email" name="email" class="form-control" value="<?= htmlspecialchars($user['email'] ?? '') ?>" required></div>
+                    <button type="submit" class="btn-save"><i class="fas fa-save me-2"></i>Сохранить почту</button>
+                </form>
+            </div>
+
+            <div class="security-block">
+                <h2 class="section-title"><i class="fas fa-lock"></i> Смена пароля</h2>
+                <form method="POST">
+                    <input type="hidden" name="action" value="change_password">
+                    <div class="form-group"><label>Текущий пароль</label><input type="password" name="current_password" class="form-control" required></div>
+                    <div class="form-group"><label>Новый пароль</label><input type="password" name="new_password" class="form-control" required minlength="6"><small style="color:#8f98a0;font-size:12px;">Минимум 6 символов</small></div>
+                    <div class="form-group"><label>Подтвердите новый пароль</label><input type="password" name="confirm_password" class="form-control" required minlength="6"></div>
+                    <button type="submit" class="btn-save"><i class="fas fa-key me-2"></i>Сменить пароль</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
