@@ -32,3 +32,62 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
 .reset-btn { background: rgba(239,68,68,0.15); border: 2px solid #ef4444; color: #fca5a5; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; }
 .reset-btn:hover { background: rgba(239,68,68,0.3); color: #fff; }
 </style>
+
+<div class="page-header">
+    <h1 class="page-title" style="border-left-color:#8b5cf6;">⚙️ Настройки сайта</h1>
+</div>
+
+<div class="site-settings" id="ssRoot">
+    <div class="settings-section">
+        <div class="section-head"><i class="fas fa-palette"></i><h2>Внешний вид</h2></div>
+        <div class="setting-item">
+            <div>
+                <div class="setting-label">Тёмная тема оформления</div>
+                <div class="setting-description">Включите для тёмной темы, выключите для светлой</div>
+            </div>
+            <label class="toggle-switch"><input type="checkbox" id="themeToggle" checked><span class="toggle-slider"></span></label>
+        </div>
+    </div>
+
+    <div class="settings-section">
+        <div class="section-head"><i class="fas fa-language"></i><h2>Язык интерфейса</h2></div>
+        <div class="setting-item">
+            <div>
+                <div class="setting-label">Выберите язык отображения</div>
+                <div class="setting-description">Русский язык доступен сейчас, английский — в разработке</div>
+            </div>
+            <select class="setting-select" id="language">
+                <option value="ru" selected>Русский</option>
+                <option value="en" disabled>English (Скоро)</option>
+            </select>
+        </div>
+    </div>
+
+    <div style="text-align:center; margin-top:30px;">
+        <button type="button" class="reset-btn" onclick="resetSettings()"><i class="fas fa-undo"></i> Сбросить настройки</button>
+    </div>
+</div>
+
+<script>
+    var ssRoot = document.getElementById('ssRoot');
+    var themeToggle = document.getElementById('themeToggle');
+    function applyTheme(theme) {
+        if (theme === 'light') { ssRoot.classList.add('light'); themeToggle.checked = false; }
+        else { ssRoot.classList.remove('light'); themeToggle.checked = true; }
+    }
+    function loadSettings() {
+        var s = {};
+        try { s = JSON.parse(localStorage.getItem('siteSettings') || '{}'); } catch (e) { s = {}; }
+        applyTheme(s.theme === 'light' ? 'light' : 'dark');
+    }
+    function saveSettings() {
+        localStorage.setItem('siteSettings', JSON.stringify({ theme: themeToggle.checked ? 'dark' : 'light' }));
+    }
+    function resetSettings() {
+        if (confirm('Вы уверены, что хотите сбросить все настройки?')) { localStorage.removeItem('siteSettings'); applyTheme('dark'); saveSettings(); }
+    }
+    themeToggle.addEventListener('change', function() { applyTheme(this.checked ? 'dark' : 'light'); saveSettings(); });
+    loadSettings();
+</script>
+
+<?php require_once 'includes/footer.php'; ?>
