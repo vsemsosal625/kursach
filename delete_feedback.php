@@ -16,9 +16,17 @@ if ($id <= 0) {
     exit;
 }
 
+// Определяем имя первичного ключа таблицы feedback
+$pkCol = 'id';
+try {
+    foreach ($pdo->query("SHOW COLUMNS FROM feedback") as $col) {
+        if (($col['Key'] ?? '') === 'PRI') { $pkCol = $col['Field']; break; }
+    }
+} catch (Exception $e) {}
+
 try {
     // Удаляем только своё обращение
-    $stmt = $pdo->prepare("DELETE FROM feedback WHERE id = ? AND user_id = ?");
+    $stmt = $pdo->prepare("DELETE FROM feedback WHERE `$pkCol` = ? AND user_id = ?");
     $stmt->execute([$id, $_SESSION['user_id']]);
 
     if ($stmt->rowCount() > 0) {

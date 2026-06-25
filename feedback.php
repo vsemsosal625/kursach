@@ -9,6 +9,14 @@ $userId = $_SESSION['user_id'];
 $success = '';
 $error = '';
 
+// Определяем имя первичного ключа таблицы feedback (id / id_feedback / ...)
+$pkCol = 'id';
+try {
+    foreach ($pdo->query("SHOW COLUMNS FROM feedback") as $col) {
+        if (($col['Key'] ?? '') === 'PRI') { $pkCol = $col['Field']; break; }
+    }
+} catch (Exception $e) { /* оставляем id по умолчанию */ }
+
 // Обработка отправки отзыва
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $type = $_POST['type'] ?? '';
@@ -104,49 +112,56 @@ require_once 'includes/header.php';
         <?php else: ?>
             <div id="feedbackList">
                 <?php foreach ($feedbacks as $fb): ?>
-                    <div class="feedback-item" data-id="<?= (int)$fb['id'] ?>">
+                    <?php
+                        $fbId = (int)($fb[$pkCol] ?? 0);
+                        $fbType = $fb['type'] ?? 'other';
+                        $fbStatus = $fb['status'] ?? 'new';
+                        $fbPriority = $fb['priority'] ?? 'medium';
+                        $fbAdmin = $fb['admin_response'] ?? '';
+                    ?>
+                    <div class="feedback-item" data-id="<?= $fbId ?>">
                         <div class="feedback-header">
                             <div>
-                                <span class="feedback-type type-<?= htmlspecialchars($fb['type']) ?>">
+                                <span class="feedback-type type-<?= htmlspecialchars($fbType) ?>">
                                     <?php
                                     $typeIcons = ['bug' => '🐛', 'feature' => '💡', 'feedback' => '💬', 'other' => '❓'];
                                     $typeNames = ['bug' => 'Ошибка', 'feature' => 'Предложение', 'feedback' => 'Отзыв', 'other' => 'Другое'];
-                                    echo ($typeIcons[$fb['type']] ?? '') . ' ' . ($typeNames[$fb['type']] ?? $fb['type']);
+                                    echo ($typeIcons[$fbType] ?? '') . ' ' . ($typeNames[$fbType] ?? $fbType);
                                     ?>
                                 </span>
-                                <div class="feedback-title"><?= htmlspecialchars($fb['title']) ?></div>
+                                <div class="feedback-title"><?= htmlspecialchars($fb['title'] ?? '') ?></div>
                             </div>
-                            <span class="status-badge status-<?= htmlspecialchars($fb['status']) ?>">
+                            <span class="status-badge status-<?= htmlspecialchars($fbStatus) ?>">
                                 <?php
                                 $statusNames = ['new' => 'Новое', 'review' => 'На рассмотрении', 'resolved' => 'Решено', 'rejected' => 'Отклонено'];
-                                echo $statusNames[$fb['status']] ?? $fb['status'];
+                                echo $statusNames[$fbStatus] ?? $fbStatus;
                                 ?>
                             </span>
                         </div>
 
-                        <div class="feedback-content"><?= nl2br(htmlspecialchars($fb['content'])) ?></div>
+                        <div class="feedback-content"><?= nl2br(htmlspecialchars($fb['content'] ?? '')) ?></div>
 
                         <div class="feedback-meta">
-                            <span><i class="far fa-calendar me-1"></i><?= date('d.m.Y H:i', strtotime($fb['created_date'])) ?></span>
-                            <span class="priority-badge priority-<?= htmlspecialchars($fb['priority']) ?>">
+                            <span><i class="far fa-calendar me-1"></i><?= !empty($fb['created_date']) ? date('d.m.Y H:i', strtotime($fb['created_date'])) : '' ?></span>
+                            <span class="priority-badge priority-<?= htmlspecialchars($fbPriority) ?>">
                                 <?php
                                 $priorityNames = ['low' => 'Низкий', 'medium' => 'Средний', 'high' => 'Высокий'];
-                                echo $priorityNames[$fb['priority']] ?? $fb['priority'];
+                                echo $priorityNames[$fbPriority] ?? $fbPriority;
                                 ?>
                             </span>
-                            <?php if (!empty($fb['admin_response'])): ?>
+                            <?php if (!empty($fbAdmin)): ?>
                                 <span class="has-answer"><i class="fas fa-check-circle me-1"></i>Есть ответ</span>
                             <?php endif; ?>
                         </div>
 
-                        <?php if (!empty($fb['admin_response'])): ?>
+                        <?php if (!empty($fbAdmin)): ?>
                             <div class="admin-response">
                                 <div class="admin-response-title"><i class="fas fa-reply me-1"></i>Ответ администратора:</div>
-                                <div class="admin-response-text"><?= nl2br(htmlspecialchars($fb['admin_response'])) ?></div>
+                                <div class="admin-response-text"><?= nl2br(htmlspecialchars($fbAdmin)) ?></div>
                             </div>
                         <?php endif; ?>
 
-                        <button type="button" class="fb-delete-btn" onclick="deleteFeedback(<?= (int)$fb['id'] ?>, this)" title="Удалить обращение">
+                        <button type="button" class="fb-delete-btn" onclick="deleteFeedback(<?= $fbId ?>, this)" title="Удалить обращение">
                             <i class="fas fa-trash"></i> Удалить
                         </button>
                     </div>

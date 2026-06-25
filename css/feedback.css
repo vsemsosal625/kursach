@@ -4,7 +4,10 @@
 .feedback-page .page-title i { color: #10b981; }
 .feedback-page .nav-btn.active-page { background: rgba(16,185,129,0.15); color: #fff; }
 
-.page-subtitle { color: #8f98a0; font-size: 16px; margin-bottom: 30px; }
+/* Заголовок раздела и описание прижимаем друг к другу, блоки поднимаем выше */
+.feedback-page .page-header { display: block; margin-bottom: 6px !important; }
+.feedback-page .page-title { margin-bottom: 0 !important; white-space: normal; }
+.page-subtitle { color: #8f98a0; font-size: 16px; margin: 0 0 22px; }
 
 /* align-items: start — левый блок (форма) НЕ растягивается под высоту истории */
 .feedback-grid {

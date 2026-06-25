@@ -11,19 +11,10 @@ $stmt = $pdo->prepare("SELECT * FROM favorites WHERE user_id = ? ORDER BY id DES
 $stmt->execute([$_SESSION['user_id']]);
 $favorites = $stmt->fetchAll();
 
-// Мета по типам разделов (название + эмодзи + страница детали)
-$typeMeta = [
-    'hero'     => ['label' => 'Герои',              'icon' => '🐉', 'page' => 'hero.php'],
-    'item'     => ['label' => 'Предметы',           'icon' => '💎', 'page' => 'item.php'],
-    'mechanic' => ['label' => 'Игровые механики',   'icon' => '⚡', 'page' => 'mechanic.php'],
-    'tactic'   => ['label' => 'Функциональные роли','icon' => '🛡️', 'page' => 'tactic.php'],
-    'object'   => ['label' => 'Адаптация',           'icon' => '🧩', 'page' => 'object.php'],
-    'synergy'  => ['label' => 'Синергия героев',     'icon' => '🤝', 'page' => 'synergy.php'],
-    'newbie'   => ['label' => 'Для новичков',        'icon' => '🎓', 'page' => 'newbie.php'],
-    'setting'  => ['label' => 'Настройки игры',      'icon' => '⚙️', 'page' => 'setting.php'],
-];
+// Категории, которые на самом деле относятся к «Функциональным ролям» (хранятся как mechanic)
+$tacticsCategories = ['Основа (1-3 позиция)', 'Поддержка (4-5 позиция)'];
 
-// Цвета атрибутов героев — 1 в 1 как в разделе «Герои»
+// Цвета атрибутов героев (1 в 1 как в разделе «Герои»)
 $attrColors = [
     'strength'     => ['bg' => 'rgba(239,68,68,0.2)',  'color' => '#fca5a5', 'border' => '#ef4444'],
     'agility'      => ['bg' => 'rgba(16,185,129,0.2)', 'color' => '#6ee7b7', 'border' => '#10b981'],
@@ -31,7 +22,7 @@ $attrColors = [
     'universal'    => ['bg' => 'rgba(245,158,11,0.2)', 'color' => '#fcd34d', 'border' => '#f59e0b'],
 ];
 
-// Цвета категорий предметов — как в разделе «Предметы»
+// Цвета категорий предметов (как в разделе «Предметы»)
 $itemCatColors = [
     'Артефакт'   => ['bg' => 'rgba(245,158,11,0.2)', 'color' => '#fcd34d', 'border' => '#f59e0b'],
     'Оружие'     => ['bg' => 'rgba(239,68,68,0.2)',  'color' => '#fca5a5', 'border' => '#ef4444'],
@@ -39,53 +30,86 @@ $itemCatColors = [
     'Поддержка'  => ['bg' => 'rgba(59,130,246,0.2)', 'color' => '#93c5fd', 'border' => '#3b82f6'],
 ];
 
-// Готовим карточки
+// Стиль бейджа категории по цвету акцента раздела
+function favCatStyle($accent) {
+    $map = [
+        '#8b5cf6' => ['rgba(139,92,246,0.2)', '#c4b5fd'],
+        '#f59e0b' => ['rgba(245,158,11,0.2)', '#fcd34d'],
+        '#10b981' => ['rgba(16,185,129,0.2)', '#6ee7b7'],
+        '#3b82f6' => ['rgba(59,130,246,0.2)', '#93c5fd'],
+        '#06b6d4' => ['rgba(6,182,212,0.2)',  '#67e8f9'],
+    ];
+    $pair = $map[$accent] ?? ['rgba(148,163,184,0.2)', '#cbd5e1'];
+    return "background: {$pair[0]}; color: {$pair[1]}; border: 1px solid {$accent};";
+}
+
 $cards = [];
 foreach ($favorites as $fav) {
     $type = $fav['item_type'];
     $idv  = (int)$fav['item_id'];
-    $meta = $typeMeta[$type] ?? ['label' => 'Справочник', 'icon' => '📘', 'page' => $type . '.php'];
 
-    $title = null;
-    $catLabel = '';
-    $catStyle = '';
-    $accent = '#8b5cf6';
+    $sectionLabel = ''; $sectionIcon = ''; $page = '';
+    $title = ''; $catLabel = ''; $catStyle = ''; $accent = '#8b5cf6';
 
     if ($type === 'hero') {
         $h = $heroesData[$idv] ?? null;
         if (!$h) continue;
+        $sectionLabel = 'Герои'; $sectionIcon = '🐉'; $page = 'hero.php';
         $title = explode(' — ', $h['name'])[0];
         $catLabel = $h['attr_name'];
         $c = $attrColors[$h['attr']] ?? null;
-        if ($c) {
-            $catStyle = "background: {$c['bg']}; color: {$c['color']}; border: 1px solid {$c['border']};";
-            $accent = $c['border'];
-        }
+        if ($c) { $catStyle = "background: {$c['bg']}; color: {$c['color']}; border: 1px solid {$c['border']};"; $accent = $c['border']; }
     } elseif ($type === 'item') {
         $it = $itemsData[$idv] ?? null;
         if (!$it) continue;
+        $sectionLabel = 'Предметы'; $sectionIcon = '💎'; $page = 'item.php';
         $title = $it['name'];
         $catLabel = $it['category'];
         $c = $itemCatColors[$it['category']] ?? ['bg' => 'rgba(6,182,212,0.2)', 'color' => '#67e8f9', 'border' => '#06b6d4'];
-        $catStyle = "background: {$c['bg']}; color: {$c['color']}; border: 1px solid {$c['border']};";
-        $accent = $c['border'];
+        $catStyle = "background: {$c['bg']}; color: {$c['color']}; border: 1px solid {$c['border']};"; $accent = $c['border'];
     } else {
-        // mechanic и остальные — данные из таблицы game_mechanic
+        // Всё остальное хранится в таблице game_mechanic
         $q = $pdo->prepare("SELECT title, category FROM game_mechanic WHERE id_game_mechanic = ?");
         $q->execute([$idv]);
         $res = $q->fetch();
         if (!$res) continue;
         $title = $res['title'];
         $catLabel = $res['category'];
-        $catStyle = "background: rgba(139,92,246,0.2); color: #c4b5fd; border: 1px solid #8b5cf6;";
-        $accent = '#8b5cf6';
+
+        switch ($type) {
+            case 'tactic':
+                $sectionLabel = 'Функциональные роли'; $sectionIcon = '📋'; $page = 'tactic.php'; $accent = '#f59e0b';
+                break;
+            case 'object':
+                $sectionLabel = 'Адаптация'; $sectionIcon = '🧩'; $page = 'object.php'; $accent = '#10b981';
+                break;
+            case 'synergy':
+                $sectionLabel = 'Синергия героев'; $sectionIcon = '🤝'; $page = 'synergy_detail.php'; $accent = '#10b981';
+                break;
+            case 'newbie':
+                $sectionLabel = 'Для новичков'; $sectionIcon = '🎓'; $page = 'newbie_detail.php'; $accent = '#3b82f6';
+                break;
+            case 'setting':
+                $sectionLabel = 'Настройки игры'; $sectionIcon = '⚙️'; $page = 'setting_detail.php'; $accent = '#8b5cf6';
+                break;
+            case 'mechanic':
+            default:
+                // Механики и роли хранятся под item_type='mechanic' — различаем по категории
+                if (in_array($res['category'], $tacticsCategories, true)) {
+                    $sectionLabel = 'Функциональные роли'; $sectionIcon = '📋'; $page = 'tactic.php'; $accent = '#f59e0b';
+                } else {
+                    $sectionLabel = 'Игровые механики'; $sectionIcon = '⚡'; $page = 'mechanic.php'; $accent = '#8b5cf6';
+                }
+                break;
+        }
+        $catStyle = favCatStyle($accent);
     }
 
     $cards[] = [
         'id' => $idv,
-        'page' => $meta['page'],
-        'sectionLabel' => $meta['label'],
-        'sectionIcon' => $meta['icon'],
+        'page' => $page,
+        'sectionLabel' => $sectionLabel,
+        'sectionIcon' => $sectionIcon,
         'title' => $title,
         'catLabel' => $catLabel,
         'catStyle' => $catStyle,
@@ -100,6 +124,7 @@ require_once 'includes/header.php';
 ?>
 
 <style>
+.favorites-page .page-header { margin-bottom: 10px; }
 .favorites-page .page-title { border-left: 4px solid #fbbf24; }
 .favorites-page .nav-btn.active-page { background: rgba(251,191,36,0.15); color: #fff; }
 
@@ -107,7 +132,7 @@ require_once 'includes/header.php';
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 24px;
-    margin-top: 10px;
+    margin-top: 6px;
     padding-bottom: 40px;
 }
 .fav-card {
