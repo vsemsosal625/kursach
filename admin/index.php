@@ -61,11 +61,19 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="stat-card"><div class="num"><?= $mechanicTotal ?></div><div class="lbl"><i class="fas fa-database"></i> Записей контента</div></div>
     </div>
 
+    <h2 class="admin-section-title"><i class="fas fa-users-cog"></i> Пользователи</h2>
+    <div class="admin-cards">
+        <a class="admin-card" href="<?= BASE_URL ?>/admin/users.php">
+            <i class="fas fa-users-cog"></i>
+            <div><div class="ac-title">Управление пользователями</div><div style="font-size:13px;color:#8f98a0;">Добавить, изменить, удалить · роли · блокировка обратной связи</div></div>
+        </a>
+    </div>
+
     <h2 class="admin-section-title"><i class="fas fa-inbox"></i> Обратная связь</h2>
     <div class="admin-cards">
         <a class="admin-card" href="<?= BASE_URL ?>/admin/feedback.php">
             <i class="fas fa-comments"></i>
-            <div><div class="ac-title">Обращения пользователей</div><div style="font-size:13px;color:#8f98a0;">Просмотр, ответы, удаление</div></div>
+            <div><div class="ac-title">Обращения пользователей</div><div style="font-size:13px;color:#8f98a0;">Просмотр, ответы, удаление, блокировка</div></div>
         </a>
     </div>
 
