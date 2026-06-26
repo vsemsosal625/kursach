@@ -31,8 +31,24 @@ CREATE TABLE IF NOT EXISTS `user` (
   login VARCHAR(100) NOT NULL UNIQUE,
   email VARCHAR(150) NOT NULL,
   password VARCHAR(255) NOT NULL,
-  registration_date DATE DEFAULT NULL
+  registration_date DATE DEFAULT NULL,
+  role VARCHAR(20) NOT NULL DEFAULT 'user'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- -------------------------------------------------------------
+-- РОЛИ ПОЛЬЗОВАТЕЛЕЙ
+--   'guest' — гость (в БД НЕ хранится, это просто сессия без входа)
+--   'user'  — обычный пользователь (роль по умолчанию для всех новых)
+--   'admin' — администратор (доступ к админ-панели /admin/)
+--
+-- Новые пользователи автоматически получают роль 'user'.
+--
+-- Если база УЖЕ создана РАНЬШЕ (без колонки role) — выполни ОДИН раз в SQL:
+--    ALTER TABLE `user` ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'user';
+--
+-- Чтобы назначить себя АДМИНИСТРАТОРОМ (замени ВАШ_ЛОГИН на свой логин входа):
+--    UPDATE `user` SET role = 'admin' WHERE login = 'ВАШ_ЛОГИН';
+-- -------------------------------------------------------------
 
 -- -------------------------------------------------------------
 -- 2. Избранное
