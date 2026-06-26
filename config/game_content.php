@@ -1,11 +1,11 @@
 <?php
 // config/game_content.php
-// Данные героев и предметов хранятся в БД (таблицы `hero` и `item`).
+// Данные героев и предметов хранятся в БД (таблицы `hero_catalog` и `item_catalog`).
+// Отдельные имена выбраны, чтобы не конфликтовать с возможными старыми таблицами hero/item.
 // Этот файл — только логика (без самих данных):
 //  - создаёт таблицы, если их нет;
-//  - при первом запуске заполняет их значениями по умолчанию (из heroes_data.php / items_data.php);
+//  - при первом запуске заполняет их значениями по умолчанию;
 //  - возвращает данные из БД в прежнем формате.
-// Поэтому повторный импорт базы не нужен — данные появятся сами.
 
 if (!function_exists('getDB')) {
     require_once __DIR__ . '/db.php';
@@ -17,15 +17,15 @@ function gc_heroAttrName($attr) {
 }
 
 function gc_ensureTables($pdo) {
-    $pdo->exec("CREATE TABLE IF NOT EXISTS hero (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(150) NOT NULL, attr VARCHAR(20) NOT NULL, attr_name VARCHAR(40) NOT NULL, attack VARCHAR(40) DEFAULT '', roles VARCHAR(255) DEFAULT '', base_str INT DEFAULT 0, base_agi INT DEFAULT 0, base_int INT DEFAULT 0, gain_str VARCHAR(20) DEFAULT '0', gain_agi VARCHAR(20) DEFAULT '0', gain_int VARCHAR(20) DEFAULT '0', abilities TEXT, image_url TEXT, description TEXT, tips TEXT) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-    $pdo->exec("CREATE TABLE IF NOT EXISTS item (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(150) NOT NULL, category VARCHAR(40) NOT NULL, cost VARCHAR(40) DEFAULT '', components TEXT, bonuses TEXT, effects TEXT, strong_against TEXT, image_url TEXT, description TEXT, tips TEXT) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS hero_catalog (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(150) NOT NULL, attr VARCHAR(20) NOT NULL, attr_name VARCHAR(40) NOT NULL, attack VARCHAR(40) DEFAULT '', roles VARCHAR(255) DEFAULT '', base_str INT DEFAULT 0, base_agi INT DEFAULT 0, base_int INT DEFAULT 0, gain_str VARCHAR(20) DEFAULT '0', gain_agi VARCHAR(20) DEFAULT '0', gain_int VARCHAR(20) DEFAULT '0', abilities TEXT, image_url TEXT, description TEXT, tips TEXT) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS item_catalog (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(150) NOT NULL, category VARCHAR(40) NOT NULL, cost VARCHAR(40) DEFAULT '', components TEXT, bonuses TEXT, effects TEXT, strong_against TEXT, image_url TEXT, description TEXT, tips TEXT) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 }
 
 function syncAndLoadHeroes($pdo, $defaults) {
     gc_ensureTables($pdo);
-    $count = (int)$pdo->query("SELECT COUNT(*) FROM hero")->fetchColumn();
+    $count = (int)$pdo->query("SELECT COUNT(*) FROM hero_catalog")->fetchColumn();
     if ($count === 0 && !empty($defaults)) {
-        $stmt = $pdo->prepare("INSERT INTO hero (id, name, attr, attr_name, attack, roles, base_str, base_agi, base_int, gain_str, gain_agi, gain_int, abilities, image_url, description, tips) VALUES (:id, :name, :attr, :attr_name, :attack, :roles, :base_str, :base_agi, :base_int, :gain_str, :gain_agi, :gain_int, :abilities, :image_url, :description, :tips)");
+        $stmt = $pdo->prepare("INSERT INTO hero_catalog (id, name, attr, attr_name, attack, roles, base_str, base_agi, base_int, gain_str, gain_agi, gain_int, abilities, image_url, description, tips) VALUES (:id, :name, :attr, :attr_name, :attack, :roles, :base_str, :base_agi, :base_int, :gain_str, :gain_agi, :gain_int, :abilities, :image_url, :description, :tips)");
         foreach ($defaults as $id => $h) {
             $abil = isset($h['abilities']) && is_array($h['abilities']) ? implode("\n", $h['abilities']) : (string)($h['abilities'] ?? '');
             $stmt->execute([
@@ -49,7 +49,7 @@ function syncAndLoadHeroes($pdo, $defaults) {
         }
     }
     $data = [];
-    foreach ($pdo->query("SELECT * FROM hero ORDER BY id")->fetchAll() as $r) {
+    foreach ($pdo->query("SELECT * FROM hero_catalog ORDER BY id")->fetchAll() as $r) {
         $abil = array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', (string)($r['abilities'] ?? ''))), fn($x) => $x !== ''));
         $data[(int)$r['id']] = [
             'id' => (int)$r['id'],
@@ -75,9 +75,9 @@ function syncAndLoadHeroes($pdo, $defaults) {
 
 function syncAndLoadItems($pdo, $defaults) {
     gc_ensureTables($pdo);
-    $count = (int)$pdo->query("SELECT COUNT(*) FROM item")->fetchColumn();
+    $count = (int)$pdo->query("SELECT COUNT(*) FROM item_catalog")->fetchColumn();
     if ($count === 0 && !empty($defaults)) {
-        $stmt = $pdo->prepare("INSERT INTO item (id, name, category, cost, components, bonuses, effects, strong_against, image_url, description, tips) VALUES (:id, :name, :category, :cost, :components, :bonuses, :effects, :strong_against, :image_url, :description, :tips)");
+        $stmt = $pdo->prepare("INSERT INTO item_catalog (id, name, category, cost, components, bonuses, effects, strong_against, image_url, description, tips) VALUES (:id, :name, :category, :cost, :components, :bonuses, :effects, :strong_against, :image_url, :description, :tips)");
         foreach ($defaults as $id => $it) {
             $stmt->execute([
                 ':id' => $id,
@@ -95,7 +95,7 @@ function syncAndLoadItems($pdo, $defaults) {
         }
     }
     $data = [];
-    foreach ($pdo->query("SELECT * FROM item ORDER BY id")->fetchAll() as $r) {
+    foreach ($pdo->query("SELECT * FROM item_catalog ORDER BY id")->fetchAll() as $r) {
         $data[(int)$r['id']] = [
             'id' => (int)$r['id'],
             'name' => $r['name'],
