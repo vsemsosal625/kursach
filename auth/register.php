@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $date = date('Y-m-d');
             $stmt = $pdo->prepare("INSERT INTO `user` (name, surname, patronymic, phone, login, email, password, registration_date) VALUES (?, ?, NULL, NULL, ?, ?, ?, ?)");
             $stmt->execute([$name, $surname, $login, $email, $hash, $date]);
-            $success = 'Регистрация успешна! <a href=\"auth.php\">Войти</a>';
+            $success = 'Регистрация успешна! <a href="auth.php">Войти</a>';
         }
     }
 }

@@ -56,6 +56,17 @@ require_once __DIR__ . '/../../includes/header.php';
 
 <body data-search-query="<?= strtolower(htmlspecialchars($searchQuery)) ?>">
 
+<style>
+/* Раздел «Герои» — оранжевый акцент (#f59e0b) под цвет раздела в шапке. */
+/* Префикс .heroes-page перекрывает общие фиолетовые правила механик. */
+.heroes-page .page-title { border-left-color: #f59e0b; }
+.heroes-page .filter-btn { background: rgba(245,158,11,0.15); border-color: #f59e0b; color: #fbbf24; }
+.heroes-page .filter-btn:hover { background: rgba(245,158,11,0.3); color: #fff; }
+.heroes-page .filter-option:hover { background: rgba(245,158,11,0.2); color: #fff; }
+.heroes-page .filter-option.active { background: rgba(245,158,11,0.3); color: #fbbf24; }
+.heroes-page .search-input:focus { border-color: #f59e0b; }
+</style>
+
 <div class="page-header">
     <h1 class="page-title">🐉 Каталог героев</h1>
     <div class="controls">
