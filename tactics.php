@@ -54,11 +54,16 @@ require_once 'includes/header.php';
 /* Раздел «Функциональные роли игроков» — янтарный акцент */
 .page-title { border-left-color: #f59e0b; }
 .category-heading { border-left-color: #f59e0b; }
+.filter-btn, .sort-btn { background: rgba(245,158,11,0.15); border-color: #f59e0b; color: #fbbf24; }
+.filter-btn:hover, .sort-btn:hover { background: rgba(245,158,11,0.3); color: #fff; }
+.filter-option:hover, .sort-option:hover { background: rgba(245,158,11,0.2); color: #fff; }
+.filter-option.active, .sort-option.active { background: rgba(245,158,11,0.3); color: #fbbf24; }
+.search-input:focus { border-color: #f59e0b; }
+.search-icon { color: #fbbf24; }
 .mechanic-card:hover { border-color: #f59e0b; box-shadow: 0 8px 25px rgba(245,158,11,0.3); }
 .mechanic-card .icon-wrap { background: rgba(245,158,11,0.15); color: #fbbf24; }
 .mechanic-card .category { background: rgba(245,158,11,0.2); color: #fcd34d; }
 .mechanic-card .click-hint { color: #fbbf24; }
-.search-input:focus { border-color: #f59e0b; }
 </style>
 
 <div class="page-header">
