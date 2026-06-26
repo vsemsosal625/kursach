@@ -15,10 +15,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($name) || empty($surname) || empty($login) || empty($email) || empty($pass)) {
         $error = 'Заполните все обязательные поля';
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = 'Некорректный формат электронной почты';
-    } elseif (strlen($pass) < 6) {
-        $error = 'Пароль должен содержать минимум 6 символов';
+    } elseif (!isValidName($name)) {
+        $error = 'Имя может содержать только русские или латинские буквы (от 2 до 50 символов)';
+    } elseif (!isValidName($surname)) {
+        $error = 'Фамилия может содержать только русские или латинские буквы (от 2 до 50 символов)';
+    } elseif (!isValidLogin($login)) {
+        $error = 'Логин должен состоять только из цифр (от 3 до 20 цифр)';
+    } elseif (!isValidEmail($email)) {
+        $error = 'Введите корректный email с существующим доменом (например, name@gmail.com)';
+    } elseif (strlen($pass) < 6 || strlen($pass) > 72) {
+        $error = 'Пароль должен содержать от 6 до 72 символов';
     } else {
         $stmt = $pdo->prepare("SELECT id_user FROM `user` WHERE login = ? OR email = ?");
         $stmt->execute([$login, $email]);
@@ -46,6 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     .auth-or { text-align: center; color: #8f98a0; margin: 18px 0 10px; font-size: 13px; }
     .btn-guest { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; border-radius: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.18); color: #cbd5e1; text-decoration: none; font-weight: 600; transition: all .25s; box-sizing: border-box; }
     .btn-guest:hover { background: rgba(255,255,255,0.12); color: #fff; }
+    .auth-hint { display:block; color:#8f98a0; font-size:12px; margin-top:4px; }
     </style>
 </head>
 <body class="auth-page">
@@ -58,23 +65,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <form method="POST" data-auth-form>
             <div class="form-group">
                 <label>Имя</label>
-                <input type="text" name="name" class="auth-input" required>
+                <input type="text" name="name" class="auth-input" required maxlength="50" pattern="[A-Za-zА-Яа-яЁё -]{2,50}" title="Только русские или латинские буквы, от 2 до 50 символов">
             </div>
             <div class="form-group">
                 <label>Фамилия</label>
-                <input type="text" name="surname" class="auth-input" required>
+                <input type="text" name="surname" class="auth-input" required maxlength="50" pattern="[A-Za-zА-Яа-яЁё -]{2,50}" title="Только русские или латинские буквы, от 2 до 50 символов">
             </div>
             <div class="form-group">
                 <label>Логин</label>
-                <input type="text" name="login" class="auth-input" required minlength="3">
+                <input type="text" name="login" class="auth-input" required minlength="3" maxlength="20" inputmode="numeric" pattern="[0-9]{3,20}" title="Только цифры, от 3 до 20 символов">
+                <small class="auth-hint">Только цифры (от 3 до 20)</small>
             </div>
             <div class="form-group">
                 <label>Электронная почта</label>
-                <input type="email" name="email" class="auth-input" required>
+                <input type="email" name="email" class="auth-input" required maxlength="150">
             </div>
             <div class="form-group">
                 <label>Пароль</label>
-                <input type="password" name="password" class="auth-input" required minlength="6">
+                <input type="password" name="password" class="auth-input" required minlength="6" maxlength="72">
             </div>
             <button type="submit" class="btn-auth">Зарегистрироваться</button>
         </form>
