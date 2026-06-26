@@ -18,9 +18,12 @@ try {
 } catch (Exception $e) {
 }
 
-$stmt = $pdo->prepare("SELECT id FROM favorites WHERE user_id = ? AND item_type = 'hero' AND item_id = ?");
-$stmt->execute([$_SESSION['user_id'], $id]);
-$isFavorite = $stmt->fetch() ? true : false;
+$isFavorite = false;
+if (isLoggedIn()) {
+    $stmt = $pdo->prepare("SELECT id FROM favorites WHERE user_id = ? AND item_type = 'hero' AND item_id = ?");
+    $stmt->execute([$_SESSION['user_id'], $id]);
+    $isFavorite = $stmt->fetch() ? true : false;
+}
 
 $from = $_GET['from'] ?? '';
 if ($from === 'rating') {

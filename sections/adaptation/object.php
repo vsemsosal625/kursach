@@ -13,9 +13,12 @@ $stmt->execute([$id]);
 $object = $stmt->fetch();
 if (!$object) { header('Location: ' . BASE_URL . '/sections/adaptation/objects.php'); exit; }
 
-$stmt = $pdo->prepare("SELECT id FROM favorites WHERE user_id = ? AND item_type = 'object' AND item_id = ?");
-$stmt->execute([$_SESSION['user_id'], $id]);
-$isFavorite = $stmt->fetch() ? true : false;
+$isFavorite = false;
+if (isLoggedIn()) {
+    $stmt = $pdo->prepare("SELECT id FROM favorites WHERE user_id = ? AND item_type = 'object' AND item_id = ?");
+    $stmt->execute([$_SESSION['user_id'], $id]);
+    $isFavorite = $stmt->fetch() ? true : false;
+}
 
 if ($from === 'favorites') {
     $backLink = BASE_URL . '/account/favorites.php';

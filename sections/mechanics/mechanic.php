@@ -13,9 +13,12 @@ $stmt->execute([$id]);
 $mechanic = $stmt->fetch();
 if (!$mechanic) { header('Location: ' . BASE_URL . '/sections/mechanics/mechanics.php'); exit; }
 
-$stmt = $pdo->prepare("SELECT id FROM favorites WHERE user_id = ? AND item_type = 'mechanic' AND item_id = ?");
-$stmt->execute([$_SESSION['user_id'], $id]);
-$isFavorite = $stmt->fetch() ? true : false;
+$isFavorite = false;
+if (isLoggedIn()) {
+    $stmt = $pdo->prepare("SELECT id FROM favorites WHERE user_id = ? AND item_type = 'mechanic' AND item_id = ?");
+    $stmt->execute([$_SESSION['user_id'], $id]);
+    $isFavorite = $stmt->fetch() ? true : false;
+}
 
 if ($from === 'favorites') {
     $backLink = BASE_URL . '/account/favorites.php';
@@ -68,32 +71,5 @@ require_once __DIR__ . '/../../includes/header.php';
         <div class="content"><?= nl2br(htmlspecialchars($mechanic['content'])) ?></div>
     </div>
 </div>
-
-<script>
-    function toggleFavorite(type, id) {
-        const formData = new FormData();
-        formData.append('item_type', type);
-        formData.append('item_id', id);
-
-        fetch((window.BASE_URL || '') + '/api/add_favorite.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const btn = document.getElementById('favBtn');
-                if (data.action === 'added') {
-                    btn.innerHTML = '<i class="fas fa-star"></i> В избранном';
-                    btn.style.background = 'rgba(251,191,36,0.3)';
-                } else {
-                    btn.innerHTML = '<i class="fas fa-bookmark"></i> Добавить в избранное';
-                    btn.style.background = 'rgba(251,191,36,0.15)';
-                }
-            }
-        })
-        .catch(err => console.error('Ошибка:', err));
-    }
-</script>
 
 <?php require_once __DIR__ . '/../../includes/footer.php'; ?>

@@ -12,9 +12,12 @@ $item = $itemsData[$id] ?? null;
 if (!$item) { header('Location: ' . BASE_URL . '/sections/items/items.php'); exit; }
 
 $pdo = getDB();
-$stmt = $pdo->prepare("SELECT id FROM favorites WHERE user_id = ? AND item_type = 'item' AND item_id = ?");
-$stmt->execute([$_SESSION['user_id'], $id]);
-$isFavorite = $stmt->fetch() ? true : false;
+$isFavorite = false;
+if (isLoggedIn()) {
+    $stmt = $pdo->prepare("SELECT id FROM favorites WHERE user_id = ? AND item_type = 'item' AND item_id = ?");
+    $stmt->execute([$_SESSION['user_id'], $id]);
+    $isFavorite = $stmt->fetch() ? true : false;
+}
 
 $from = $_GET['from'] ?? '';
 if ($from === 'favorites') {
