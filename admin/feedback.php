@@ -34,8 +34,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $uid = (int)($_POST['user_id'] ?? 0);
         if ($uid > 0) {
             ensureColumn($pdo, 'user', 'feedback_blocked', 'feedback_blocked TINYINT(1) NOT NULL DEFAULT 0');
-            $stmt = $pdo->prepare("UPDATE `user` SET feedback_blocked = 1 - feedback_blocked WHERE id_user = ?");
-            $stmt->execute([$uid]);
+            // Администраторам нельзя ограничивать обратную связь.
+            $tr = $pdo->prepare("SELECT role FROM `user` WHERE id_user = ?");
+            $tr->execute([$uid]);
+            if ($tr->fetchColumn() !== 'admin') {
+                $stmt = $pdo->prepare("UPDATE `user` SET feedback_blocked = 1 - feedback_blocked WHERE id_user = ?");
+                $stmt->execute([$uid]);
+            }
         }
     }
     $back = isset($_POST['filter']) && $_POST['filter'] !== 'all' ? '?status=' . urlencode($_POST['filter']) : '';
@@ -46,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $filter = $_GET['status'] ?? 'all';
 if (!in_array($filter, ['all','new','review','resolved','rejected'])) $filter = 'all';
 
-$sql = "SELECT f.*, u.login AS u_login, u.name AS u_name, u.surname AS u_surname, u.patronymic AS u_patronymic, u.feedback_blocked AS u_blocked FROM feedback f LEFT JOIN `user` u ON f.user_id = u.id_user";
+$sql = "SELECT f.*, u.login AS u_login, u.name AS u_name, u.surname AS u_surname, u.patronymic AS u_patronymic, u.role AS u_role, u.feedback_blocked AS u_blocked FROM feedback f LEFT JOIN `user` u ON f.user_id = u.id_user";
 $params = [];
 if ($filter !== 'all') { $sql .= " WHERE f.status = ?"; $params[] = $filter; }
 $sql .= " ORDER BY f.created_date DESC";
@@ -112,6 +117,7 @@ require_once __DIR__ . '/../includes/header.php';
         $st = $f['status'] ?? 'new';
         $pr = $f['priority'] ?? 'medium';
         $blocked = (int)($f['u_blocked'] ?? 0) === 1;
+        $authorRole = $f['u_role'] ?? 'user';
         $fio = trim(($f['u_surname'] ?? '') . ' ' . ($f['u_name'] ?? '') . ' ' . ($f['u_patronymic'] ?? ''));
         $ulogin = $f['u_login'] ?? '';
         if ($fio === '') $fio = $ulogin !== '' ? $ulogin : ('ID ' . ($f['user_id'] ?? '?'));
@@ -150,7 +156,7 @@ require_once __DIR__ . '/../includes/header.php';
                 </div>
             </form>
             <div class="fb-actions">
-                <?php if (!empty($f['user_id'])): ?>
+                <?php if (!empty($f['user_id']) && $authorRole !== 'admin'): ?>
                 <form method="post" onsubmit="return confirm('<?= $blocked ? 'Разблокировать обратную связь у этого пользователя?' : 'Заблокировать этому пользователю доступ к обратной связи?' ?>');">
                     <input type="hidden" name="action" value="toggle_block">
                     <input type="hidden" name="user_id" value="<?= (int)$f['user_id'] ?>">

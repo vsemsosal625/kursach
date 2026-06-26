@@ -12,6 +12,13 @@ $selfId = (int)($_SESSION['user_id'] ?? 0);
 $error = '';
 $success = '';
 
+// Возвращает роль пользователя по id (для защиты админов).
+function userRole($pdo, $uid) {
+    $st = $pdo->prepare("SELECT role FROM `user` WHERE id_user = ?");
+    $st->execute([$uid]);
+    return $st->fetchColumn();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
@@ -21,6 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Неверный пользователь';
         } elseif ($uid === $selfId) {
             $error = 'Нельзя удалить собственную учётную запись';
+        } elseif (userRole($pdo, $uid) === 'admin') {
+            $error = 'Администратора нельзя удалить. Сначала смените его роль на «Пользователь».';
         } else {
             try {
                 $stmt = $pdo->prepare("DELETE FROM `user` WHERE id_user = ?");
@@ -31,16 +40,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($action === 'toggle_block') {
         $uid = (int)($_POST['user_id'] ?? 0);
         if ($uid > 0) {
-            $stmt = $pdo->prepare("UPDATE `user` SET feedback_blocked = 1 - feedback_blocked WHERE id_user = ?");
-            $stmt->execute([$uid]);
-            $success = 'Статус доступа к обратной связи изменён';
+            if (userRole($pdo, $uid) === 'admin') {
+                $error = 'Администратору нельзя ограничить доступ к обратной связи';
+            } else {
+                $stmt = $pdo->prepare("UPDATE `user` SET feedback_blocked = 1 - feedback_blocked WHERE id_user = ?");
+                $stmt->execute([$uid]);
+                $success = 'Статус доступа к обратной связи изменён';
+            }
         }
     } elseif ($action === 'add' || $action === 'edit') {
         $uid = (int)($_POST['user_id'] ?? 0);
         $name = trim($_POST['name'] ?? '');
         $surname = trim($_POST['surname'] ?? '');
         $patronymic = trim($_POST['patronymic'] ?? '');
-        $phone = trim($_POST['phone'] ?? '');
         $login = trim($_POST['login'] ?? '');
         $role = $_POST['role'] ?? 'user';
         $password = $_POST['password'] ?? '';
@@ -54,8 +66,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Отчество: только русские или латинские буквы (от 2 до 50 символов)';
         } elseif (!isValidLogin($login)) {
             $error = 'Логин должен состоять только из цифр (от 3 до 20 цифр)';
-        } elseif (!isValidPhone($phone)) {
-            $error = 'Телефон может содержать только цифры и символы + - ( )';
         } elseif ($action === 'add' && (strlen($password) < 6 || strlen($password) > 72)) {
             $error = 'Пароль: от 6 до 72 символов';
         } elseif ($action === 'edit' && $password !== '' && (strlen($password) < 6 || strlen($password) > 72)) {
@@ -71,17 +81,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $hash = password_hash($password, PASSWORD_BCRYPT);
                         // email больше не используется, но колонка в БД NOT NULL UNIQUE — пишем техническое значение.
                         $email = $login . '@local';
-                        $stmt = $pdo->prepare("INSERT INTO `user` (name, surname, patronymic, phone, login, email, password, registration_date, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                        $stmt->execute([$name, $surname, $patronymic !== '' ? $patronymic : null, $phone !== '' ? $phone : null, $login, $email, $hash, date('Y-m-d'), $role]);
+                        $stmt = $pdo->prepare("INSERT INTO `user` (name, surname, patronymic, login, email, password, registration_date, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                        $stmt->execute([$name, $surname, $patronymic !== '' ? $patronymic : null, $login, $email, $hash, date('Y-m-d'), $role]);
                         $success = 'Пользователь добавлен';
                     } else {
                         if ($password !== '') {
                             $hash = password_hash($password, PASSWORD_BCRYPT);
-                            $stmt = $pdo->prepare("UPDATE `user` SET name=?, surname=?, patronymic=?, phone=?, login=?, role=?, password=? WHERE id_user=?");
-                            $stmt->execute([$name, $surname, $patronymic !== '' ? $patronymic : null, $phone !== '' ? $phone : null, $login, $role, $hash, $uid]);
+                            $stmt = $pdo->prepare("UPDATE `user` SET name=?, surname=?, patronymic=?, login=?, role=?, password=? WHERE id_user=?");
+                            $stmt->execute([$name, $surname, $patronymic !== '' ? $patronymic : null, $login, $role, $hash, $uid]);
                         } else {
-                            $stmt = $pdo->prepare("UPDATE `user` SET name=?, surname=?, patronymic=?, phone=?, login=?, role=? WHERE id_user=?");
-                            $stmt->execute([$name, $surname, $patronymic !== '' ? $patronymic : null, $phone !== '' ? $phone : null, $login, $role, $uid]);
+                            $stmt = $pdo->prepare("UPDATE `user` SET name=?, surname=?, patronymic=?, login=?, role=? WHERE id_user=?");
+                            $stmt->execute([$name, $surname, $patronymic !== '' ? $patronymic : null, $login, $role, $uid]);
                         }
                         if ($uid === $selfId) { $_SESSION['user_role'] = $role; $_SESSION['user_login'] = $login; }
                         $success = 'Данные пользователя обновлены';
@@ -132,7 +142,8 @@ require_once __DIR__ . '/../includes/header.php';
 .btn-blk { background:transparent; color:#fbbf24; border:1px solid #fbbf24 !important; }
 .btn-blk.on { color:#6ee7b7; border-color:#10b981 !important; }
 .btn-rm { background:transparent; color:#f87171; border:1px solid #f87171 !important; }
-.self-tag { color:#8f98a0; font-size:12px; font-style:italic; }
+.self-tag { color:#8f98a0; font-size:12px; font-style:italic; align-self:center; }
+.adm-tag { color:#fcd34d; font-size:12px; font-style:italic; align-self:center; }
 @media (max-width: 800px) { .us-grid { grid-template-columns:1fr; } .users-table { display:block; overflow-x:auto; } }
 </style>
 
@@ -154,7 +165,6 @@ require_once __DIR__ . '/../includes/header.php';
                 <div><label>Имя *</label><input type="text" name="name" id="f-name" maxlength="50" pattern="[A-Za-zА-Яа-яЁё -]{2,50}" title="Только русские или латинские буквы" required></div>
                 <div><label>Фамилия *</label><input type="text" name="surname" id="f-surname" maxlength="50" pattern="[A-Za-zА-Яа-яЁё -]{2,50}" title="Только русские или латинские буквы" required></div>
                 <div><label>Отчество</label><input type="text" name="patronymic" id="f-patronymic" maxlength="50" pattern="[A-Za-zА-Яа-яЁё -]{2,50}" title="Только русские или латинские буквы"></div>
-                <div><label>Телефон</label><input type="tel" name="phone" id="f-phone" maxlength="20" pattern="[0-9+() -]{5,20}" title="Только цифры и символы + - ( )"></div>
                 <div><label>Логин (только цифры) *</label><input type="text" name="login" id="f-login" inputmode="numeric" minlength="3" maxlength="20" pattern="[0-9]{3,20}" title="Только цифры, от 3 до 20" required><small>Только цифры (от 3 до 20)</small></div>
                 <div><label>Роль</label><select name="role" id="f-role"><option value="user">Пользователь</option><option value="admin">Администратор</option></select></div>
                 <div><label>Пароль <span id="pass-star">*</span></label><input type="password" name="password" id="f-password" minlength="6" maxlength="72"><small id="pass-hint">От 6 до 72 символов</small></div>
@@ -175,12 +185,13 @@ require_once __DIR__ . '/../includes/header.php';
             $uid = (int)$u['id_user'];
             $blocked = (int)($u['feedback_blocked'] ?? 0) === 1;
             $urole = $u['role'] ?? 'user';
+            $isAdminRow = $urole === 'admin';
         ?>
             <tr>
                 <td><?= $uid ?></td>
                 <td><?= htmlspecialchars(trim(($u['surname'] ?? '') . ' ' . ($u['name'] ?? '') . ' ' . ($u['patronymic'] ?? ''))) ?></td>
                 <td><?= htmlspecialchars($u['login'] ?? '') ?></td>
-                <td><span class="role-badge role-<?= $urole === 'admin' ? 'admin' : 'user' ?>"><?= $urole === 'admin' ? 'Администратор' : 'Пользователь' ?></span></td>
+                <td><span class="role-badge role-<?= $isAdminRow ? 'admin' : 'user' ?>"><?= $isAdminRow ? 'Администратор' : 'Пользователь' ?></span></td>
                 <td><?= $blocked ? '<span class="blk blk-on">Заблокирована</span>' : '<span class="blk blk-off">Активна</span>' ?></td>
                 <td>
                     <div class="u-row-actions">
@@ -189,21 +200,22 @@ require_once __DIR__ . '/../includes/header.php';
                             data-name="<?= htmlspecialchars($u['name'] ?? '', ENT_QUOTES) ?>"
                             data-surname="<?= htmlspecialchars($u['surname'] ?? '', ENT_QUOTES) ?>"
                             data-patronymic="<?= htmlspecialchars($u['patronymic'] ?? '', ENT_QUOTES) ?>"
-                            data-phone="<?= htmlspecialchars($u['phone'] ?? '', ENT_QUOTES) ?>"
                             data-login="<?= htmlspecialchars($u['login'] ?? '', ENT_QUOTES) ?>"
                             data-role="<?= htmlspecialchars($urole, ENT_QUOTES) ?>"><i class="fas fa-edit"></i> Изменить</button>
-                        <form method="post" style="display:inline;" onsubmit="return confirm('Изменить доступ к обратной связи?');">
-                            <input type="hidden" name="action" value="toggle_block">
-                            <input type="hidden" name="user_id" value="<?= $uid ?>">
-                            <button type="submit" class="btn-blk<?= $blocked ? ' on' : '' ?>"><i class="fas fa-ban"></i> <?= $blocked ? 'Разблок.' : 'Блок ОС' ?></button>
-                        </form>
-                        <?php if ($uid !== $selfId): ?>
-                        <form method="post" style="display:inline;" onsubmit="return confirm('Удалить пользователя безвозвратно?');">
-                            <input type="hidden" name="action" value="delete">
-                            <input type="hidden" name="user_id" value="<?= $uid ?>">
-                            <button type="submit" class="btn-rm"><i class="fas fa-trash"></i> Удалить</button>
-                        </form>
-                        <?php else: ?><span class="self-tag">это вы</span><?php endif; ?>
+                        <?php if ($isAdminRow): ?>
+                            <span class="adm-tag"><i class="fas fa-shield-alt"></i> <?= $uid === $selfId ? 'это вы · админ' : 'админ защищён' ?></span>
+                        <?php else: ?>
+                            <form method="post" style="display:inline;" onsubmit="return confirm('Изменить доступ к обратной связи?');">
+                                <input type="hidden" name="action" value="toggle_block">
+                                <input type="hidden" name="user_id" value="<?= $uid ?>">
+                                <button type="submit" class="btn-blk<?= $blocked ? ' on' : '' ?>"><i class="fas fa-ban"></i> <?= $blocked ? 'Разблок.' : 'Блок ОС' ?></button>
+                            </form>
+                            <form method="post" style="display:inline;" onsubmit="return confirm('Удалить пользователя безвозвратно?');">
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="user_id" value="<?= $uid ?>">
+                                <button type="submit" class="btn-rm"><i class="fas fa-trash"></i> Удалить</button>
+                            </form>
+                        <?php endif; ?>
                     </div>
                 </td>
             </tr>
@@ -218,7 +230,7 @@ function showAddForm() {
     document.getElementById('form-id').value = '0';
     document.getElementById('form-title').textContent = 'Новый пользователь';
     document.getElementById('submit-btn').innerHTML = '<i class="fas fa-save"></i> Создать';
-    ['name','surname','patronymic','phone','login','password'].forEach(function(k){ document.getElementById('f-' + k).value = ''; });
+    ['name','surname','patronymic','login','password'].forEach(function(k){ document.getElementById('f-' + k).value = ''; });
     document.getElementById('f-role').value = 'user';
     document.getElementById('f-password').setAttribute('required', 'required');
     document.getElementById('pass-star').style.display = '';
@@ -235,7 +247,6 @@ function editUser(btn) {
     document.getElementById('f-name').value = btn.getAttribute('data-name');
     document.getElementById('f-surname').value = btn.getAttribute('data-surname');
     document.getElementById('f-patronymic').value = btn.getAttribute('data-patronymic');
-    document.getElementById('f-phone').value = btn.getAttribute('data-phone');
     document.getElementById('f-login').value = btn.getAttribute('data-login');
     document.getElementById('f-role').value = btn.getAttribute('data-role');
     document.getElementById('f-password').value = '';

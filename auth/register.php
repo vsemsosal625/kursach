@@ -11,8 +11,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $surname = trim($_POST['surname'] ?? '');
     $login   = trim($_POST['login'] ?? '');
     $pass    = $_POST['password'] ?? '';
+    $pass2   = $_POST['password_confirm'] ?? '';
 
-    if (empty($name) || empty($surname) || empty($login) || empty($pass)) {
+    if (empty($name) || empty($surname) || empty($login) || empty($pass) || empty($pass2)) {
         $error = 'Заполните все обязательные поля';
     } elseif (!isValidName($name)) {
         $error = 'Имя может содержать только русские или латинские буквы (от 2 до 50 символов)';
@@ -22,6 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Логин должен состоять только из цифр (от 3 до 20 цифр)';
     } elseif (strlen($pass) < 6 || strlen($pass) > 72) {
         $error = 'Пароль должен содержать от 6 до 72 символов';
+    } elseif ($pass !== $pass2) {
+        $error = 'Пароли не совпадают';
     } else {
         $stmt = $pdo->prepare("SELECT id_user FROM `user` WHERE login = ?");
         $stmt->execute([$login]);
@@ -79,6 +82,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="form-group">
                 <label>Пароль</label>
                 <input type="password" name="password" class="auth-input" required minlength="6" maxlength="72">
+                <small class="auth-hint">От 6 до 72 символов</small>
+            </div>
+            <div class="form-group">
+                <label>Подтверждение пароля</label>
+                <input type="password" name="password_confirm" class="auth-input" required minlength="6" maxlength="72">
+                <small class="auth-hint">Повторите пароль для проверки</small>
             </div>
             <button type="submit" class="btn-auth">Зарегистрироваться</button>
         </form>
@@ -92,5 +101,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <script src="<?= BASE_URL ?>/js/auth.js"></script>
+    <script>
+    (function () {
+        var form = document.querySelector('form[data-auth-form]');
+        if (!form) return;
+        var p1 = form.querySelector('input[name="password"]');
+        var p2 = form.querySelector('input[name="password_confirm"]');
+        if (!p1 || !p2) return;
+        function check() {
+            p2.setCustomValidity(p2.value && p1.value !== p2.value ? 'Пароли не совпадают' : '');
+        }
+        p1.addEventListener('input', check);
+        p2.addEventListener('input', check);
+    })();
+    </script>
 </body>
 </html>
