@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $date = date('Y-m-d');
             $stmt = $pdo->prepare("INSERT INTO `user` (name, surname, patronymic, phone, login, email, password, registration_date) VALUES (?, ?, NULL, NULL, ?, ?, ?, ?)");
             $stmt->execute([$name, $surname, $login, $email, $hash, $date]);
-            $success = 'Регистрация успешна! <a href="auth.php">Войти</a>';
+            $success = 'Регистрация успешна! <a href=\"auth.php\">Войти</a>';
         }
     }
 }
@@ -42,6 +42,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Регистрация | Игровой справочник</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/auth.css">
+    <style>
+    .auth-or { text-align: center; color: #8f98a0; margin: 18px 0 10px; font-size: 13px; }
+    .btn-guest { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; border-radius: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.18); color: #cbd5e1; text-decoration: none; font-weight: 600; transition: all .25s; box-sizing: border-box; }
+    .btn-guest:hover { background: rgba(255,255,255,0.12); color: #fff; }
+    </style>
 </head>
 <body class="auth-page">
     <div class="auth-card">
@@ -73,6 +78,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <button type="submit" class="btn-auth">Зарегистрироваться</button>
         </form>
+
+        <div class="auth-or">или</div>
+        <a href="auth.php?guest=1" class="btn-guest"><i class="fas fa-user-secret"></i> Продолжить как гость</a>
 
         <div class="auth-footer">
             Уже есть аккаунт? <a href="auth.php">Войти</a>

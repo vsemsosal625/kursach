@@ -5,6 +5,13 @@ require_once __DIR__ . '/../config/init.php';
 $pdo = getDB();
 $error = '';
 
+// «Продолжить как гость» — включаем гостевой режим и уходим на главную
+if (isset($_GET['guest'])) {
+    $_SESSION['is_guest'] = true;
+    header('Location: ' . BASE_URL . '/index.php');
+    exit;
+}
+
 if (isset($_SESSION['user_id'])) {
     header('Location: ' . BASE_URL . '/index.php');
     exit;
@@ -24,6 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($user && password_verify($password, $user['password'])) {
             $_SESSION['user_id']    = $user['id_user'];
             $_SESSION['user_login'] = $user['login'];
+            unset($_SESSION['user_role']); // роль пересчитается через currentRole()
+            unset($_SESSION['is_guest']);  // выходим из гостевого режима
             header('Location: ' . BASE_URL . '/index.php');
             exit;
         } else {
@@ -40,6 +49,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Вход | Игровой справочник</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/auth.css">
+    <style>
+    .auth-or { text-align: center; color: #8f98a0; margin: 18px 0 10px; font-size: 13px; }
+    .btn-guest { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; border-radius: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.18); color: #cbd5e1; text-decoration: none; font-weight: 600; transition: all .25s; box-sizing: border-box; }
+    .btn-guest:hover { background: rgba(255,255,255,0.12); color: #fff; }
+    </style>
 </head>
 <body class="auth-page">
     <div class="auth-card">
@@ -60,6 +74,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <button type="submit" class="btn-auth">Войти</button>
         </form>
+
+        <div class="auth-or">или</div>
+        <a href="?guest=1" class="btn-guest"><i class="fas fa-user-secret"></i> Продолжить как гость</a>
 
         <div class="auth-footer">
             Нет аккаунта? <a href="register.php">Зарегистрироваться</a>
