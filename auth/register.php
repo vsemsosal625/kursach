@@ -1,5 +1,5 @@
 <?php
-// auth/register.php — страница регистрации
+// auth/register.php — страница регистрации (без email, вход по логину)
 require_once __DIR__ . '/../config/init.php';
 
 $pdo = getDB();
@@ -10,10 +10,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name    = trim($_POST['name'] ?? '');
     $surname = trim($_POST['surname'] ?? '');
     $login   = trim($_POST['login'] ?? '');
-    $email   = trim($_POST['email'] ?? '');
     $pass    = $_POST['password'] ?? '';
 
-    if (empty($name) || empty($surname) || empty($login) || empty($email) || empty($pass)) {
+    if (empty($name) || empty($surname) || empty($login) || empty($pass)) {
         $error = 'Заполните все обязательные поля';
     } elseif (!isValidName($name)) {
         $error = 'Имя может содержать только русские или латинские буквы (от 2 до 50 символов)';
@@ -21,18 +20,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Фамилия может содержать только русские или латинские буквы (от 2 до 50 символов)';
     } elseif (!isValidLogin($login)) {
         $error = 'Логин должен состоять только из цифр (от 3 до 20 цифр)';
-    } elseif (!isValidEmail($email)) {
-        $error = 'Введите корректный email с существующим доменом (например, name@gmail.com)';
     } elseif (strlen($pass) < 6 || strlen($pass) > 72) {
         $error = 'Пароль должен содержать от 6 до 72 символов';
     } else {
-        $stmt = $pdo->prepare("SELECT id_user FROM `user` WHERE login = ? OR email = ?");
-        $stmt->execute([$login, $email]);
+        $stmt = $pdo->prepare("SELECT id_user FROM `user` WHERE login = ?");
+        $stmt->execute([$login]);
         if ($stmt->fetch()) {
-            $error = 'Пользователь с таким логином или email уже существует';
+            $error = 'Пользователь с таким логином уже существует';
         } else {
             $hash = password_hash($pass, PASSWORD_BCRYPT);
             $date = date('Y-m-d');
+            // Колонка email в БД помечена NOT NULL UNIQUE, но в проекте почта больше не используется.
+            // Записываем техническое значение на основе логина: оно нигде не показывается и не требует ввода.
+            $email = $login . '@local';
             $stmt = $pdo->prepare("INSERT INTO `user` (name, surname, patronymic, phone, login, email, password, registration_date) VALUES (?, ?, NULL, NULL, ?, ?, ?, ?)");
             $stmt->execute([$name, $surname, $login, $email, $hash, $date]);
             $success = 'Регистрация успешна! <a href="auth.php">Войти</a>';
@@ -74,11 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="form-group">
                 <label>Логин</label>
                 <input type="text" name="login" class="auth-input" required minlength="3" maxlength="20" inputmode="numeric" pattern="[0-9]{3,20}" title="Только цифры, от 3 до 20 символов">
-                <small class="auth-hint">Только цифры (от 3 до 20)</small>
-            </div>
-            <div class="form-group">
-                <label>Электронная почта</label>
-                <input type="email" name="email" class="auth-input" required maxlength="150">
+                <small class="auth-hint">Только цифры (от 3 до 20). Используется для входа.</small>
             </div>
             <div class="form-group">
                 <label>Пароль</label>

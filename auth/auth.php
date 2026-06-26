@@ -1,5 +1,5 @@
 <?php
-// auth/auth.php — страница входа в систему
+// auth/auth.php — страница входа в систему (вход только по логину)
 require_once __DIR__ . '/../config/init.php';
 
 $pdo = getDB();
@@ -17,14 +17,14 @@ if (isset($_SESSION['user_id'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $identifier = trim($_POST['identifier'] ?? '');
-    $password   = $_POST['password'] ?? '';
+    $login    = trim($_POST['login'] ?? '');
+    $password = $_POST['password'] ?? '';
 
-    if (empty($identifier) || empty($password)) {
-        $error = 'Введите логин/email и пароль';
+    if (empty($login) || empty($password)) {
+        $error = 'Введите логин и пароль';
     } else {
-        $stmt = $pdo->prepare("SELECT id_user, login, password FROM `user` WHERE login = ? OR LOWER(email) = LOWER(?)");
-        $stmt->execute([$identifier, $identifier]);
+        $stmt = $pdo->prepare("SELECT id_user, login, password FROM `user` WHERE login = ?");
+        $stmt->execute([$login]);
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password'])) {
@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Location: ' . BASE_URL . '/index.php');
             exit;
         } else {
-            $error = 'Неверный логин/email или пароль';
+            $error = 'Неверный логин или пароль';
         }
     }
 }
@@ -64,8 +64,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <form method="POST" data-auth-form>
             <div class="form-group">
-                <label>Логин или Email</label>
-                <input type="text" name="identifier" class="auth-input" required autofocus>
+                <label>Логин</label>
+                <input type="text" name="login" class="auth-input" required autofocus inputmode="numeric">
             </div>
             <div class="form-group">
                 <label>Пароль</label>
