@@ -5,28 +5,25 @@ requireLogin();
 $pageTitle = 'Предметы';
 $currentPage = 'items';
 
-// Данные предметов по категориям
-$items = [
-    // АРТЕФАКТЫ
-    ['id'=>1, 'name'=>'Black King Bar', 'category'=>'artifact', 'category_name'=>'Артефакт', 'image_url'=>'https://ru.dotabuff.com/assets/items/black-king-bar.jpg'],
-    ['id'=>2, 'name'=>'Divine Rapier', 'category'=>'artifact', 'category_name'=>'Артефакт', 'image_url'=>'https://ru.dotabuff.com/assets/items/divine-rapier.jpg'],
-    ['id'=>3, 'name'=>'Butterfly', 'category'=>'artifact', 'category_name'=>'Артефакт', 'image_url'=>'https://www.dotabuff.com/assets/items/butterfly.jpg'],
-    
-    // ОРУЖИЕ
-    ['id'=>4, 'name'=>'Daedalus', 'category'=>'weapon', 'category_name'=>'Оружие', 'image_url'=>'https://www.dotabuff.com/assets/items/daedalus.jpg'],
-    ['id'=>5, 'name'=>'Monkey King Bar', 'category'=>'weapon', 'category_name'=>'Оружие', 'image_url'=>'https://www.dotabuff.com/assets/items/monkey-king-bar.jpg'],
-    ['id'=>6, 'name'=>'Crystalys', 'category'=>'weapon', 'category_name'=>'Оружие', 'image_url'=>'https://www.dotabuff.com/assets/items/crystalys.jpg'],
-    
-    // РАСХОДНИКИ
-    ['id'=>7, 'name'=>'Tango', 'category'=>'consumable', 'category_name'=>'Расходники', 'image_url'=>'https://www.dotabuff.com/assets/items/tango.jpg'],
-    ['id'=>8, 'name'=>'Healing Salve', 'category'=>'consumable', 'category_name'=>'Расходники', 'image_url'=>'https://www.dotabuff.com/assets/items/healing-salve.jpg'],
-    ['id'=>9, 'name'=>'Clarity', 'category'=>'consumable', 'category_name'=>'Расходники', 'image_url'=>'https://www.dotabuff.com/assets/items/clarity.jpg'],
-    
-    // ПОДДЕРЖКА
-    ['id'=>10, 'name'=>'Glimmer Cape', 'category'=>'support', 'category_name'=>'Поддержка', 'image_url'=>'https://www.dotabuff.com/assets/items/glimmer-cape.jpg'],
-    ['id'=>11, 'name'=>'Force Staff', 'category'=>'support', 'category_name'=>'Поддержка', 'image_url'=>'https://www.dotabuff.com/assets/items/force-staff.jpg'],
-    ['id'=>12, 'name'=>'Observer Ward', 'category'=>'support', 'category_name'=>'Поддержка', 'image_url'=>'https://www.dotabuff.com/assets/items/observer-ward.jpg'],
-];
+// Данные предметов берутся из БД (таблица item), редактируются в админ-панели.
+require_once __DIR__ . '/../../config/items_data.php';
+
+// Сопоставление русской категории (в БД) с кодом фильтра
+function itemCatCode($ru) {
+    $map = ['Артефакт'=>'artifact', 'Оружие'=>'weapon', 'Расходники'=>'consumable', 'Поддержка'=>'support'];
+    return $map[$ru] ?? 'artifact';
+}
+
+$items = [];
+foreach ($itemsData as $it) {
+    $items[] = [
+        'id' => $it['id'],
+        'name' => $it['name'],
+        'category' => itemCatCode($it['category']),
+        'category_name' => $it['category'],
+        'image_url' => $it['image_url'] ?? '',
+    ];
+}
 
 // Получаем категорию для фильтрации
 $filterCategory = $_GET['category'] ?? '';
