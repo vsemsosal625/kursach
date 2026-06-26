@@ -1,6 +1,6 @@
 <?php
 $pageTitle = 'Главная';
-require_once 'includes/header.php';
+require_once __DIR__ . '/includes/header.php';
 ?>
 
 <div class="updates-container">
@@ -64,31 +64,31 @@ require_once 'includes/header.php';
 <div class="popular-sections">
     <h2><i class="fas fa-fire" style="color: #f59e0b; margin-right: 10px;"></i>Популярные разделы</h2>
     <div class="sections-grid">
-        <a href="tactics.php?category=Функциональные+роли+игроков" class="section-card">
+        <a href="<?= BASE_URL ?>/sections/roles/tactics.php?category=Функциональные+роли+игроков" class="section-card">
             <span class="icon"><i class="fas fa-chess-board" style="color: #3b82f6;"></i></span>
             <h4>Функциональные роли игроков</h4>
         </a>
-        <a href="objects.php" class="section-card">
+        <a href="<?= BASE_URL ?>/sections/adaptation/objects.php" class="section-card">
             <span class="icon"><i class="fas fa-clock" style="color: #10b981;"></i></span>
             <h4>Адаптация и расчет времени</h4>
         </a>
-        <a href="rating.php" class="section-card">
+        <a href="<?= BASE_URL ?>/sections/rating/rating.php" class="section-card">
             <span class="icon"><i class="fas fa-trophy" style="color: #fbbf24;"></i></span>
             <h4>Рейтинг героев</h4>
         </a>
-        <a href="newbie.php" class="section-card">
+        <a href="<?= BASE_URL ?>/sections/newbie/newbie.php" class="section-card">
             <span class="icon"><i class="fas fa-book-reader" style="color: #8b5cf6;"></i></span>
             <h4>Для новичков</h4>
         </a>
-        <a href="synergy.php" class="section-card">
+        <a href="<?= BASE_URL ?>/sections/synergy/synergy.php" class="section-card">
             <span class="icon"><i class="fas fa-link" style="color: #06b6d4;"></i></span>
             <h4>Синергия героев на линии</h4>
         </a>
-        <a href="settings.php" class="section-card">
+        <a href="<?= BASE_URL ?>/sections/settings/settings.php" class="section-card">
             <span class="icon"><i class="fas fa-cog" style="color: #8b5cf6;"></i></span>
             <h4>Оптимальные настройки игры</h4>
         </a>
     </div>
 </div>
 
-<?php require_once 'includes/footer.php'; ?>
+<?php require_once __DIR__ . '/includes/footer.php'; ?>

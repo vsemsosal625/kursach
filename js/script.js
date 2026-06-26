@@ -186,7 +186,7 @@ function toggleFavorite(type, id) {
     const formData = new FormData();
     formData.append('item_type', type);
     formData.append('item_id', id);
-    fetch('add_favorite.php', {
+    fetch((window.BASE_URL || '') + '/api/add_favorite.php', {
         method: 'POST',
         body: formData
     })
@@ -318,7 +318,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const fd = new FormData();
         fd.append('ajax', 'delete');
         fd.append('id', id);
-        fetch('feedback.php', { method: 'POST', body: fd })
+        fetch((window.BASE_URL || '') + '/account/feedback.php', { method: 'POST', body: fd })
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 if (data.success) {
