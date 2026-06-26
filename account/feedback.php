@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/init.php';
-requireLogin();
+requireUser();
 
 $pdo = getDB();
 $userId = $_SESSION['user_id'];

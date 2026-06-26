@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/init.php';
-requireLogin();
+requireUser();
 
 require_once __DIR__ . '/../config/heroes_data.php';
 require_once __DIR__ . '/../config/items_data.php';

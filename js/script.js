@@ -206,6 +206,11 @@ function toggleFavorite(type, id) {
                 btn.style.borderColor = '#fbbf24';
                 btn.style.color = '#fbbf24';
             }
+        } else if (data.error === 'Не авторизован') {
+            // Гость пытается добавить в избранное — предлагаем войти
+            if (confirm('Чтобы добавлять в избранное, нужно войти в систему. Перейти на страницу входа?')) {
+                window.location.href = (window.BASE_URL || '') + '/auth/auth.php';
+            }
         }
     })
     .catch(err => console.error('Ошибка:', err));
