@@ -1,6 +1,6 @@
 /* css/theme.css — Светлая тема оформления.
    Включается в «Настройках сайта» (класс html.light-theme).
-   Все правила с !important, чтобы перекрывать как style.css, так и
+   Большинство правил с !important, чтобы перекрывать как style.css, так и
    встроенные <style> на отдельных страницах. */
 
 /* ===== Базовый фон и текст ===== */
@@ -140,3 +140,111 @@ html.light-theme .setting-item { border-color: #e3e8ef !important; }
 /* ===== Страница «Настройки сайта» ===== */
 html.light-theme .settings-section .section-head { border-bottom-color: #e3e8ef !important; }
 html.light-theme .settings-section .section-head h2 { color: #0f172a !important; }
+
+/* =====================================================================
+   ДОПОЛНИТЕЛЬНЫЕ ИСПРАВЛЕНИЯ СВЕТЛОЙ ТЕМЫ
+   ===================================================================== */
+
+/* ----- Раздел «Предметы» ----- */
+/* Контейнер категории делаем светло-серым, чтобы белые карточки предметов выделялись */
+html.light-theme .items-page .category-section,
+html.light-theme .category-section {
+    background: #eef2f8 !important;
+    border-color: #dbe3ec !important;
+    box-shadow: 0 2px 10px rgba(15,23,42,0.05) !important;
+}
+/* Цветные заголовки категорий (идут после общего правила .category-title — перекрывают его) */
+html.light-theme .cat-artifact { color: #b45309 !important; border-color: #f59e0b !important; }
+html.light-theme .cat-weapon { color: #dc2626 !important; border-color: #dc2626 !important; }
+html.light-theme .cat-consumable { color: #059669 !important; border-color: #059669 !important; }
+html.light-theme .cat-support { color: #2563eb !important; border-color: #2563eb !important; }
+/* Имя предмета было белым */
+html.light-theme .item-name { color: #0f172a !important; }
+/* Плейсхолдеры фото (были почти чёрными) */
+html.light-theme .item-avatar,
+html.light-theme .hero-avatar,
+html.light-theme .hero-detail-layout .hero-avatar-box { background: #eef2f8 !important; border-color: #e3e8ef !important; }
+
+/* ----- Карточка героя: характеристики и способности ----- */
+/* Значения Сила/Ловкость/Интеллект были белыми по белому */
+html.light-theme .hero-detail-layout .stat-item strong { color: #0f172a !important; }
+html.light-theme .hero-detail-layout .stat-item span { color: #475569 !important; }
+html.light-theme .hero-detail-layout .stat-item .stat-growth { color: #059669 !important; }
+/* Способности: были тёмно-серыми и нечитаемыми */
+html.light-theme .hero-detail-layout .abilities-list li {
+    background: #f1f5f9 !important;
+    color: #334155 !important;
+    border-left-color: #3b82f6 !important;
+    font-weight: 500 !important;
+}
+
+/* ----- Рейтинг героев: медали 1–2–3 место (золото/серебро/бронза) ----- */
+/* Более высокая специфичность, чем общее .rank-badge выше */
+html.light-theme .rank-badge.rank-1 { background: linear-gradient(135deg, #fbbf24, #f59e0b) !important; color: #1b1200 !important; box-shadow: 0 0 18px rgba(251,191,36,0.5) !important; }
+html.light-theme .rank-badge.rank-2 { background: linear-gradient(135deg, #cbd5e1, #94a3b8) !important; color: #1f2733 !important; box-shadow: 0 0 14px rgba(148,163,184,0.45) !important; }
+html.light-theme .rank-badge.rank-3 { background: linear-gradient(135deg, #d97706, #b45309) !important; color: #ffffff !important; box-shadow: 0 0 14px rgba(217,119,6,0.45) !important; }
+
+/* ----- Админ-панель (index / users / feedback / content / heroes_items) ----- */
+/* Карточки и панели */
+html.light-theme .stat-card,
+html.light-theme .admin-card,
+html.light-theme .user-form-box,
+html.light-theme .users-table,
+html.light-theme .fb-card,
+html.light-theme .ct-form-box,
+html.light-theme .ct-row,
+html.light-theme .hi-form-box,
+html.light-theme .hi-row,
+html.light-theme .admin-note {
+    background: linear-gradient(135deg, #ffffff 0%, #f6f9fc 100%) !important;
+    border-color: #e3e8ef !important;
+    color: #334155 !important;
+    box-shadow: 0 2px 10px rgba(15,23,42,0.06) !important;
+}
+/* Тёмный текст внутри админ-карточек */
+html.light-theme .admin-card,
+html.light-theme .admin-card .ac-title,
+html.light-theme .user-form-box h2,
+html.light-theme .users-table td,
+html.light-theme .ct-row h4,
+html.light-theme .hi-row h4,
+html.light-theme .fb-content { color: #0f172a !important; }
+/* Второстепенный текст */
+html.light-theme .admin-sub,
+html.light-theme .stat-card .lbl,
+html.light-theme .ct-row p,
+html.light-theme .hi-row .meta,
+html.light-theme .fb-empty,
+html.light-theme .ct-empty,
+html.light-theme .hi-empty { color: #64748b !important; }
+/* Шапка таблицы пользователей */
+html.light-theme .users-table th { background: #f1f5f9 !important; color: #475569 !important; border-bottom-color: #e3e8ef !important; }
+html.light-theme .users-table td { border-bottom-color: #e3e8ef !important; }
+/* Поля ввода в админ-формах */
+html.light-theme .us-grid input,
+html.light-theme .us-grid select,
+html.light-theme .ct-field input,
+html.light-theme .ct-field select,
+html.light-theme .ct-field textarea,
+html.light-theme .hi-field input,
+html.light-theme .hi-field select,
+html.light-theme .hi-field textarea,
+html.light-theme .fb-form textarea,
+html.light-theme .fb-form select {
+    background: #f1f5f9 !important; border-color: #cbd5e1 !important; color: #1f2733 !important;
+}
+/* Подписи полей */
+html.light-theme .us-grid label,
+html.light-theme .ct-field label,
+html.light-theme .hi-field label { color: #475569 !important; }
+/* Кнопка «Отмена» */
+html.light-theme .btn-cancel { color: #475569 !important; border-color: #cbd5e1 !important; }
+/* Миниатюры в списках героев/предметов */
+html.light-theme .hi-thumb { background: #eef2f8 !important; border-color: #e3e8ef !important; }
+
+/* Вкладки админки — без !important, чтобы активная вкладка сохранила акцент */
+html.light-theme .fb-tab,
+html.light-theme .ct-tab,
+html.light-theme .hi-tab { background: #ffffff; border-color: #e3e8ef; color: #475569; }
+html.light-theme .fb-tab.active,
+html.light-theme .hi-tab.active { background: #fbbf24; border-color: #fbbf24; color: #1b2838; font-weight: 600; }
