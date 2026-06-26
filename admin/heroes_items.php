@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'delete') {
         $rid = (int)($_POST['id'] ?? 0);
-        $tbl = $ptype === 'hero' ? 'hero' : 'item';
+        $tbl = $ptype === 'hero' ? 'hero_catalog' : 'item_catalog';
         $stmt = $pdo->prepare("DELETE FROM $tbl WHERE id = ?");
         $stmt->execute([$rid]);
     } elseif ($action === 'create' || $action === 'update') {
@@ -48,12 +48,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($action === 'create') {
                     $cols = implode(', ', array_keys($fields));
                     $ph = implode(', ', array_fill(0, count($fields), '?'));
-                    $stmt = $pdo->prepare("INSERT INTO hero ($cols) VALUES ($ph)");
+                    $stmt = $pdo->prepare("INSERT INTO hero_catalog ($cols) VALUES ($ph)");
                     $stmt->execute(array_values($fields));
                 } else {
                     $rid = (int)($_POST['id'] ?? 0);
                     $set = implode(', ', array_map(fn($k) => "$k = ?", array_keys($fields)));
-                    $stmt = $pdo->prepare("UPDATE hero SET $set WHERE id = ?");
+                    $stmt = $pdo->prepare("UPDATE hero_catalog SET $set WHERE id = ?");
                     $stmt->execute(array_merge(array_values($fields), [$rid]));
                 }
             }
@@ -77,12 +77,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($action === 'create') {
                     $cols = implode(', ', array_keys($fields));
                     $ph = implode(', ', array_fill(0, count($fields), '?'));
-                    $stmt = $pdo->prepare("INSERT INTO item ($cols) VALUES ($ph)");
+                    $stmt = $pdo->prepare("INSERT INTO item_catalog ($cols) VALUES ($ph)");
                     $stmt->execute(array_values($fields));
                 } else {
                     $rid = (int)($_POST['id'] ?? 0);
                     $set = implode(', ', array_map(fn($k) => "$k = ?", array_keys($fields)));
-                    $stmt = $pdo->prepare("UPDATE item SET $set WHERE id = ?");
+                    $stmt = $pdo->prepare("UPDATE item_catalog SET $set WHERE id = ?");
                     $stmt->execute(array_merge(array_values($fields), [$rid]));
                 }
             }
@@ -92,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-$tbl = $type === 'hero' ? 'hero' : 'item';
+$tbl = $type === 'hero' ? 'hero_catalog' : 'item_catalog';
 $rows = $pdo->query("SELECT * FROM $tbl ORDER BY id")->fetchAll();
 
 $pageTitle = $type === 'hero' ? 'Управление героями' : 'Управление предметами';
