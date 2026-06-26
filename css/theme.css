@@ -1,0 +1,142 @@
+/* css/theme.css — Светлая тема оформления.
+   Включается в «Настройках сайта» (класс html.light-theme).
+   Все правила с !important, чтобы перекрывать как style.css, так и
+   встроенные <style> на отдельных страницах. */
+
+/* ===== Базовый фон и текст ===== */
+html.light-theme body {
+    background: linear-gradient(180deg, #eef2f8 0%, #e6ebf3 100%) !important;
+    color: #334155 !important;
+}
+html.light-theme h1,
+html.light-theme h2,
+html.light-theme h3,
+html.light-theme h4 { color: #0f172a !important; }
+
+/* ===== Навигация ===== */
+html.light-theme .top-navbar {
+    background: linear-gradient(135deg, #ffffff 0%, #eef2f8 100%) !important;
+    box-shadow: 0 2px 14px rgba(15,23,42,0.08) !important;
+}
+html.light-theme .nav-btn { color: #475569 !important; }
+html.light-theme .nav-btn:hover,
+html.light-theme .nav-btn.active-page { color: #0f172a !important; background: rgba(59,130,246,0.12) !important; }
+html.light-theme .user-dropdown { background: #ffffff !important; box-shadow: 0 8px 24px rgba(15,23,42,0.15) !important; }
+html.light-theme .user-dropdown a { color: #334155 !important; border-bottom-color: #eef2f7 !important; }
+html.light-theme .user-dropdown a:hover { background: rgba(59,130,246,0.1) !important; color: #0f172a !important; }
+
+/* ===== Футер ===== */
+html.light-theme .footer-panel { background: #ffffff !important; border-top-color: #e2e8f0 !important; box-shadow: 0 -2px 12px rgba(15,23,42,0.05) !important; }
+html.light-theme .footer-panel a, html.light-theme .footer-panel p { color: #64748b !important; }
+html.light-theme .footer-panel a:hover { color: #0f172a !important; }
+
+/* ===== Заголовки и второстепенный текст ===== */
+html.light-theme .page-title { color: #0f172a !important; }
+html.light-theme .page-subtitle,
+html.light-theme .filter-label,
+html.light-theme .setting-description,
+html.light-theme .hero-pos,
+html.light-theme .no-results,
+html.light-theme .no-feedback,
+html.light-theme .fav-empty { color: #64748b !important; }
+
+/* ===== Универсальные панели / карточки ===== */
+html.light-theme .updates-container,
+html.light-theme .popular-sections,
+html.light-theme .section-card,
+html.light-theme .attribute-section,
+html.light-theme .hero-card,
+html.light-theme .item-card,
+html.light-theme .mechanic-card,
+html.light-theme .object-card,
+html.light-theme .synergy-card,
+html.light-theme .setting-card,
+html.light-theme .mechanic-detail,
+html.light-theme .tactic-detail,
+html.light-theme .object-detail,
+html.light-theme .top-item,
+html.light-theme .feedback-form,
+html.light-theme .feedback-history,
+html.light-theme .feedback-item,
+html.light-theme .profile-sidebar,
+html.light-theme .profile-content,
+html.light-theme .fav-card,
+html.light-theme .settings-section,
+html.light-theme .hero-detail-layout .info-block,
+html.light-theme .hero-tips-box,
+html.light-theme .hero-lore-block,
+html.light-theme .hero-avatar-box,
+html.light-theme .patch-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f6f9fc 100%) !important;
+    border-color: #e3e8ef !important;
+    color: #334155 !important;
+    box-shadow: 0 2px 10px rgba(15,23,42,0.06) !important;
+}
+
+/* Описания / превью внутри карточек ===== */
+html.light-theme .summary-text,
+html.light-theme .mechanic-card .preview,
+html.light-theme .object-card .preview,
+html.light-theme .synergy-card .preview,
+html.light-theme .setting-card .preview,
+html.light-theme .mechanic-detail .content,
+html.light-theme .tactic-detail .content,
+html.light-theme .object-detail .content,
+html.light-theme .hero-lore-block p,
+html.light-theme .hero-tips-box p,
+html.light-theme .info-block p,
+html.light-theme .feedback-content,
+html.light-theme .admin-response-text,
+html.light-theme .category-description,
+html.light-theme .profile-email { color: #475569 !important; }
+
+/* Заголовки/имена внутри карточек, которые были белыми ===== */
+html.light-theme .object-card h3,
+html.light-theme .synergy-card h3,
+html.light-theme .setting-card h3,
+html.light-theme .object-detail h1,
+html.light-theme .synergy-card .hero-name,
+html.light-theme .hero-name,
+html.light-theme .hero-name-text,
+html.light-theme .hero-info h3,
+html.light-theme .feedback-title,
+html.light-theme .category-heading,
+html.light-theme .category-title,
+html.light-theme .section-title,
+html.light-theme .setting-label,
+html.light-theme .profile-name,
+html.light-theme .updates-title,
+html.light-theme .section-card h4 { color: #0f172a !important; }
+
+/* ===== Поиск / фильтры / поля ввода ===== */
+html.light-theme .search-input { background: #f1f5f9 !important; border-color: #cbd5e1 !important; color: #1f2733 !important; }
+html.light-theme .form-control,
+html.light-theme .profile-content .form-control,
+html.light-theme .setting-select { background: #f1f5f9 !important; border-color: #cbd5e1 !important; color: #1f2733 !important; }
+html.light-theme .form-control:disabled,
+html.light-theme .profile-content .form-control:disabled { background: #e8edf3 !important; color: #94a3b8 !important; }
+html.light-theme .filter-options, html.light-theme .sort-options { background: #ffffff !important; border-color: #e3e8ef !important; box-shadow: 0 8px 24px rgba(15,23,42,0.12) !important; }
+html.light-theme .filter-option, html.light-theme .sort-option { color: #334155 !important; border-bottom-color: #eef2f7 !important; }
+
+/* ===== Прочие тёмные блоки ===== */
+html.light-theme .patches-carousel { background: #f1f5f9 !important; }
+html.light-theme .patch-content, html.light-theme .patch-content p { color: #475569 !important; }
+html.light-theme .pager-btn { background: #f1f5f9 !important; border-color: #cbd5e1 !important; color: #475569 !important; }
+html.light-theme .rank-badge { background: #e2e8f0 !important; color: #334155 !important; }
+html.light-theme .hero-image { background: #f1f5f9 !important; border-color: #e3e8ef !important; }
+html.light-theme .profile-nav-btn { background: rgba(59,130,246,0.08) !important; color: #334155 !important; }
+html.light-theme .profile-nav-btn:hover, html.light-theme .profile-nav-btn.active { background: rgba(59,130,246,0.16) !important; color: #0f172a !important; }
+html.light-theme .stat-item { background: #f1f5f9 !important; }
+html.light-theme .fav-section { background: #eef2f8 !important; border-color: #dbe3ec !important; color: #475569 !important; }
+
+/* Тонкие разделители ===== */
+html.light-theme .heroes-row,
+html.light-theme .category-header,
+html.light-theme .security-block,
+html.light-theme .admin-response,
+html.light-theme .object-detail .meta,
+html.light-theme .setting-item { border-color: #e3e8ef !important; }
+
+/* ===== Страница «Настройки сайта» ===== */
+html.light-theme .settings-section .section-head { border-bottom-color: #e3e8ef !important; }
+html.light-theme .settings-section .section-head h2 { color: #0f172a !important; }
