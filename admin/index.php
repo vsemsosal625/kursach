@@ -69,6 +69,18 @@ require_once __DIR__ . '/../includes/header.php';
         </a>
     </div>
 
+    <h2 class="admin-section-title"><i class="fas fa-dragon"></i> Герои и предметы</h2>
+    <div class="admin-cards">
+        <a class="admin-card" href="<?= BASE_URL ?>/admin/heroes_items.php?type=hero">
+            <i class="fas fa-dragon"></i>
+            <div><div class="ac-title">Герои</div><div style="font-size:13px;color:#8f98a0;">Добавить, изменить, удалить · фото по ссылке</div></div>
+        </a>
+        <a class="admin-card" href="<?= BASE_URL ?>/admin/heroes_items.php?type=item">
+            <i class="fas fa-gem"></i>
+            <div><div class="ac-title">Предметы</div><div style="font-size:13px;color:#8f98a0;">Добавить, изменить, удалить · фото по ссылке</div></div>
+        </a>
+    </div>
+
     <h2 class="admin-section-title"><i class="fas fa-folder-open"></i> Управление разделами</h2>
     <div class="admin-cards">
         <?php foreach ($contentSections as $key => $sec): ?>
@@ -77,10 +89,6 @@ require_once __DIR__ . '/../includes/header.php';
                 <div><div class="ac-title"><?= htmlspecialchars($sec[0]) ?></div><div style="font-size:13px;color:#8f98a0;">Добавить, изменить, удалить</div></div>
             </a>
         <?php endforeach; ?>
-    </div>
-
-    <div class="admin-note">
-        <b><i class="fas fa-info-circle"></i> Герои и предметы.</b> Сейчас данные героев и предметов хранятся в файлах <code>config/heroes_data.php</code> и <code>config/items_data.php</code>, а не в базе данных. Управление ими через админ-панель (добавление, изменение и удаление с сохранением в базу) подключим отдельным этапом — для этого их нужно перенести в таблицы базы данных.
     </div>
 </div>
 
