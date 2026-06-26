@@ -162,7 +162,7 @@ require_once __DIR__ . '/../includes/header.php';
                 </div>
                 <div class="hi-field"><label>Ссылка на фото (URL)</label><input type="text" name="image_url" id="f-image_url" placeholder="https://..."></div>
                 <div class="hi-field"><label>Тип атаки</label><input type="text" name="attack" id="f-attack" placeholder="Ближняя / Дальняя"></div>
-                <div class="hi-field"><label>Роли</label><input type="text" name="roles" id="f-roles" placeholder="Напр.: Инициатор, Танк"></div>
+                <div class="hi-field"><label>Роли (позиции 1–5)</label><input type="text" name="roles" id="f-roles" placeholder="Напр.: Позиция 1 (Керри), Позиция 3 (Оффлейнер)"></div>
                 <div class="hi-grid3">
                     <div class="hi-field"><label>Базовая Сила</label><input type="number" name="base_str" id="f-base_str" value="0"></div>
                     <div class="hi-field"><label>Базовая Ловкость</label><input type="number" name="base_agi" id="f-base_agi" value="0"></div>

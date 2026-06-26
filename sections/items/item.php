@@ -40,9 +40,20 @@ $cc = $categoryColors[$item['category']] ?? ['bg' => 'rgba(6,182,212,0.2)', 'col
 require_once __DIR__ . '/../../includes/header.php';
 ?>
 
+<style>
+.detail-top-bar { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:20px; }
+.detail-top-bar .back-btn { margin-bottom:0; }
+.detail-top-bar .fav-btn { margin:0; }
+</style>
+
 <div id="top">
 
-    <a href="<?= $backUrl ?>" class="back-btn"><i class="fas fa-arrow-left"></i><?= $backText ?></a>
+    <div class="detail-top-bar">
+        <a href="<?= $backUrl ?>" class="back-btn"><i class="fas fa-arrow-left"></i><?= $backText ?></a>
+        <button id="favBtn" class="fav-btn" onclick="toggleFavorite('item', <?= $id ?>)" style="background: <?= $isFavorite ? 'rgba(251,191,36,0.3)' : 'rgba(251,191,36,0.15)' ?>;">
+            <i class="fas <?= $isFavorite ? 'fa-star' : 'fa-bookmark' ?>"></i> <?= $isFavorite ? 'В избранном' : 'Добавить в избранное' ?>
+        </button>
+    </div>
 
     <div class="hero-detail-layout">
         <!-- Левая часть: Аватар + Имя + Советы -->
@@ -59,10 +70,6 @@ require_once __DIR__ . '/../../includes/header.php';
                 <span class="hero-name-text"><?= htmlspecialchars($item['name']) ?></span>
                 <span class="hero-attr-badge" style="background: <?= $cc['bg'] ?>; color: <?= $cc['color'] ?>; border: 1px solid <?= $cc['border'] ?>;"><?= htmlspecialchars($item['category']) ?></span>
             </div>
-
-            <button id="favBtn" class="fav-btn" onclick="toggleFavorite('item', <?= $id ?>)" style="background: <?= $isFavorite ? 'rgba(251,191,36,0.3)' : 'rgba(251,191,36,0.15)' ?>;">
-                <i class="fas <?= $isFavorite ? 'fa-star' : 'fa-bookmark' ?>"></i> <?= $isFavorite ? 'В избранном' : 'Добавить в избранное' ?>
-            </button>
 
             <!-- Блок СОВЕТЫ -->
             <div class="hero-tips-box">

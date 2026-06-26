@@ -31,11 +31,11 @@ require_once __DIR__ . '/../includes/header.php';
 .admin-head i { color:#fbbf24; font-size:30px; }
 .admin-head h1 { margin:0; color:#fff; font-size:30px; }
 .admin-sub { color:#8f98a0; margin-bottom:28px; }
-.admin-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:32px; }
-.stat-card { background:linear-gradient(135deg,#1b2838,#2a475e); border:1px solid #36414d; border-radius:12px; padding:22px; }
+.admin-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); grid-auto-rows:1fr; gap:16px; margin-bottom:32px; }
+.stat-card { background:linear-gradient(135deg,#1b2838,#2a475e); border:1px solid #36414d; border-radius:12px; padding:22px; min-height:120px; box-sizing:border-box; }
 .stat-card .num { font-size:32px; font-weight:700; color:#fbbf24; }
 .stat-card .lbl { color:#c7d0d8; font-size:14px; margin-top:4px; }
-.stat-card.alert .num { color:#f87171; }
+.stat-card.stat-new .num { color:#f87171; }
 .admin-section-title { color:#fff; font-size:20px; margin:24px 0 14px; }
 .admin-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:16px; }
 .admin-card { display:flex; align-items:center; gap:14px; background:#1b2838; border:1px solid #36414d; border-radius:12px; padding:20px; color:#e0e0e0; text-decoration:none; transition:.2s; }
@@ -56,7 +56,7 @@ require_once __DIR__ . '/../includes/header.php';
 
     <div class="admin-stats">
         <div class="stat-card"><div class="num"><?= $usersCount ?></div><div class="lbl"><i class="fas fa-users"></i> Пользователей</div></div>
-        <div class="stat-card<?= $feedbackNew > 0 ? ' alert' : '' ?>"><div class="num"><?= $feedbackNew ?></div><div class="lbl"><i class="fas fa-envelope"></i> Новых обращений</div></div>
+        <div class="stat-card<?= $feedbackNew > 0 ? ' stat-new' : '' ?>"><div class="num"><?= $feedbackNew ?></div><div class="lbl"><i class="fas fa-envelope"></i> Новых обращений</div></div>
         <div class="stat-card"><div class="num"><?= $feedbackTotal ?></div><div class="lbl"><i class="fas fa-comments"></i> Всего обращений</div></div>
         <div class="stat-card"><div class="num"><?= $mechanicTotal ?></div><div class="lbl"><i class="fas fa-database"></i> Записей контента</div></div>
     </div>
