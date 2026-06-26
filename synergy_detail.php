@@ -47,7 +47,7 @@ require_once 'includes/header.php';
     <i class="fas fa-arrow-left"></i> <?= $backText ?>
 </a>
 
-<button id="favBtn" class="fav-btn" onclick="toggleFavorite('synergy', <?= $id ?>)">
+<button id="favBtn" class="fav-btn" onclick="toggleFavorite('synergy', <?= $id ?>)" style="background: <?= $isFavorite ? 'rgba(251,191,36,0.3)' : 'rgba(251,191,36,0.15)' ?>;">
     <i class="fas <?= $isFavorite ? 'fa-star' : 'fa-bookmark' ?>"></i> <?= $isFavorite ? 'В избранном' : 'Добавить в избранное' ?>
 </button>
 

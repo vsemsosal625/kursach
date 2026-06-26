@@ -1,0 +1,104 @@
+/* auth.css — общие стили для страниц входа и регистрации */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body.auth-page {
+    background: #0f1419;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.auth-card {
+    background: linear-gradient(135deg, #1b2838 0%, #2a475e 100%);
+    border: 1px solid #36414d;
+    border-radius: 12px;
+    padding: 40px 35px;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+
+.auth-title {
+    text-align: center;
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 25px;
+    color: #fff;
+}
+.auth-title i { color: #3b82f6; margin-right: 10px; }
+
+.form-group { margin-bottom: 18px; }
+.form-group label {
+    display: block;
+    color: #acb2b8;
+    font-size: 14px;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.auth-input {
+    width: 100%;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid #36414d;
+    color: #e0e0e0;
+    padding: 13px 16px;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: all 0.3s;
+}
+.auth-input::placeholder { color: #8f98a0; }
+.auth-input:focus {
+    background: rgba(0,0,0,0.45);
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+    color: #fff;
+    outline: none;
+}
+
+.btn-auth {
+    width: 100%;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border: none;
+    color: #fff;
+    padding: 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 8px;
+}
+.btn-auth:hover {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59,130,246,0.4);
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 22px;
+    color: #8f98a0;
+    font-size: 14px;
+}
+.auth-footer a {
+    color: #66c0f4;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+.auth-footer a:hover { color: #60a5fa; text-decoration: underline; }
+
+.auth-alert {
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 500;
+}
+.auth-alert a { color: inherit; font-weight: 700; text-decoration: underline; }
+.auth-alert.error { background: rgba(239,68,68,0.15); border: 1px solid #ef4444; color: #fca5a5; }
+.auth-alert.success { background: rgba(16,185,129,0.15); border: 1px solid #10b981; color: #6ee7b7; }
