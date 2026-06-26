@@ -4,6 +4,7 @@ requireUser();
 
 $pdo = getDB();
 $userId = $_SESSION['user_id'];
+$feedbackBlocked = isFeedbackBlocked($pdo, $userId);
 
 // Определяем имя первичного ключа таблицы feedback (id / id_feedback / ...)
 $pkCol = 'id';
@@ -33,19 +34,27 @@ $error = '';
 
 // Обработка отправки отзыва
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $type = $_POST['type'] ?? '';
-    $title = trim($_POST['title'] ?? '');
-    $content = trim($_POST['content'] ?? '');
-    $priority = $_POST['priority'] ?? 'medium';
-    if (empty($type) || empty($title) || empty($content)) {
-        $error = 'Заполните все обязательные поля';
+    if ($feedbackBlocked) {
+        $error = 'Доступ к обратной связи заблокирован администратором за нарушение правил. Отправка новых обращений недоступна.';
     } else {
-        try {
-            $stmt = $pdo->prepare("INSERT INTO feedback (user_id, type, title, content, priority, created_date, status) VALUES (?, ?, ?, ?, ?, NOW(), 'new')");
-            $stmt->execute([$userId, $type, $title, $content, $priority]);
-            $success = 'Ваш отзыв успешно отправлен! Спасибо за обратную связь.';
-        } catch (Exception $e) {
-            $error = 'Ошибка при отправке: ' . $e->getMessage();
+        $type = $_POST['type'] ?? '';
+        $title = trim($_POST['title'] ?? '');
+        $content = trim($_POST['content'] ?? '');
+        $priority = $_POST['priority'] ?? 'medium';
+        if (empty($type) || empty($title) || empty($content)) {
+            $error = 'Заполните все обязательные поля';
+        } elseif (mb_strlen($title) > 255) {
+            $error = 'Заголовок слишком длинный (максимум 255 символов)';
+        } elseif (mb_strlen($content) > 5000) {
+            $error = 'Сообщение слишком длинное (максимум 5000 символов)';
+        } else {
+            try {
+                $stmt = $pdo->prepare("INSERT INTO feedback (user_id, type, title, content, priority, created_date, status) VALUES (?, ?, ?, ?, ?, NOW(), 'new')");
+                $stmt->execute([$userId, $type, $title, $content, $priority]);
+                $success = 'Ваш отзыв успешно отправлен! Спасибо за обратную связь.';
+            } catch (Exception $e) {
+                $error = 'Ошибка при отправке: ' . $e->getMessage();
+            }
         }
     }
 }
@@ -79,6 +88,8 @@ require_once __DIR__ . '/../includes/header.php';
 textarea.form-control { min-height: 150px; resize: vertical; }
 .btn-submit { background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; padding: 14px 28px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; width: 100%; }
 .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,0.4); }
+.fb-blocked-note { background: rgba(239,68,68,0.12); border: 1px solid #ef4444; border-radius: 10px; padding: 22px; color: #fca5a5; line-height: 1.6; }
+.fb-blocked-note i { font-size: 28px; display:block; margin-bottom: 10px; }
 .alert { padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; }
 .alert-success { background: rgba(16,185,129,0.15); border: 1px solid #10b981; color: #6ee7b7; }
 .alert-error { background: rgba(239,68,68,0.15); border: 1px solid #ef4444; color: #fca5a5; }
@@ -134,6 +145,13 @@ textarea.form-control { min-height: 150px; resize: vertical; }
 <div class="feedback-grid">
     <div class="feedback-form">
         <h2 class="section-title"><i class="fas fa-paper-plane"></i> Отправить отзыв</h2>
+        <?php if ($feedbackBlocked): ?>
+            <div class="fb-blocked-note">
+                <i class="fas fa-ban"></i>
+                <b>Доступ к обратной связи заблокирован.</b><br>
+                Администратор ограничил вам возможность отправлять новые обращения за нарушение правил общения (неприемлемые выражения, оскорбления и т.п.). Ранее отправленные обращения остаются доступны ниже.
+            </div>
+        <?php else: ?>
         <form method="POST">
             <div class="form-group">
                 <label>Тип обращения <span class="req">*</span></label>
@@ -147,7 +165,7 @@ textarea.form-control { min-height: 150px; resize: vertical; }
             </div>
             <div class="form-group">
                 <label>Заголовок <span class="req">*</span></label>
-                <input type="text" name="title" class="form-control" placeholder="Краткое описание вашего обращения" required>
+                <input type="text" name="title" class="form-control" placeholder="Краткое описание вашего обращения" required maxlength="255">
             </div>
             <div class="form-group">
                 <label>Приоритет</label>
@@ -159,10 +177,11 @@ textarea.form-control { min-height: 150px; resize: vertical; }
             </div>
             <div class="form-group">
                 <label>Сообщение <span class="req">*</span></label>
-                <textarea name="content" class="form-control" placeholder="Опишите подробно вашу проблему, предложение или отзыв..." required></textarea>
+                <textarea name="content" class="form-control" placeholder="Опишите подробно вашу проблему, предложение или отзыв..." required maxlength="5000"></textarea>
             </div>
             <button type="submit" class="btn-submit"><i class="fas fa-paper-plane me-2"></i>Отправить</button>
         </form>
+        <?php endif; ?>
     </div>
 
     <div class="feedback-history">

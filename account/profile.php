@@ -22,10 +22,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $phone = trim($_POST['phone'] ?? '');
         if (empty($name) || empty($surname)) {
             $error = 'Заполните имя и фамилию';
+        } elseif (!isValidName($name)) {
+            $error = 'Имя может содержать только русские или латинские буквы (от 2 до 50 символов)';
+        } elseif (!isValidName($surname)) {
+            $error = 'Фамилия может содержать только русские или латинские буквы (от 2 до 50 символов)';
+        } elseif ($patronymic !== '' && !isValidName($patronymic)) {
+            $error = 'Отчество может содержать только русские или латинские буквы (от 2 до 50 символов)';
+        } elseif (!isValidPhone($phone)) {
+            $error = 'Телефон может содержать только цифры и символы + - ( )';
         } else {
             try {
                 $stmt = $pdo->prepare("UPDATE `user` SET name = ?, surname = ?, patronymic = ?, phone = ? WHERE id_user = ?");
-                $stmt->execute([$name, $surname, $patronymic, $phone, $userId]);
+                $stmt->execute([$name, $surname, $patronymic !== '' ? $patronymic : null, $phone !== '' ? $phone : null, $userId]);
                 $success = 'Профиль успешно обновлён';
                 $user['name'] = $name; $user['surname'] = $surname; $user['patronymic'] = $patronymic; $user['phone'] = $phone;
             } catch (Exception $e) {
@@ -37,8 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $newLogin = trim($_POST['login'] ?? '');
         if (empty($newLogin)) {
             $error = 'Введите новый логин';
-        } elseif (mb_strlen($newLogin) < 3) {
-            $error = 'Логин должен быть не менее 3 символов';
+        } elseif (!isValidLogin($newLogin)) {
+            $error = 'Логин должен состоять только из цифр (от 3 до 20 цифр)';
         } else {
             $chk = $pdo->prepare("SELECT id_user FROM `user` WHERE login = ? AND id_user <> ?");
             $chk->execute([$newLogin, $userId]);
@@ -59,8 +67,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     } elseif ($_POST['action'] === 'change_email') {
         $activeTab = 'security';
         $newEmail = trim($_POST['email'] ?? '');
-        if (empty($newEmail) || !filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
-            $error = 'Введите корректный email';
+        if (empty($newEmail) || !isValidEmail($newEmail)) {
+            $error = 'Введите корректный email с существующим доменом';
         } else {
             $chk = $pdo->prepare("SELECT id_user FROM `user` WHERE email = ? AND id_user <> ?");
             $chk->execute([$newEmail, $userId]);
@@ -88,8 +96,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $error = 'Новые пароли не совпадают';
         } elseif (!password_verify($currentPassword, $user['password'])) {
             $error = 'Текущий пароль неверный';
-        } elseif (strlen($newPassword) < 6) {
-            $error = 'Пароль должен быть не менее 6 символов';
+        } elseif (strlen($newPassword) < 6 || strlen($newPassword) > 72) {
+            $error = 'Пароль должен быть от 6 до 72 символов';
         } else {
             try {
                 $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
@@ -130,6 +138,7 @@ require_once __DIR__ . '/../includes/header.php';
 .profile-content .form-control { background: rgba(27,40,56,0.8); border: 2px solid #36414d; color: #e0e0e0; padding: 12px 16px; border-radius: 8px; font-size: 15px; transition: all 0.3s; width: 100%; }
 .profile-content .form-control:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
 .profile-content .form-control:disabled { background: rgba(27,40,56,0.4); color: #8f98a0; cursor: not-allowed; }
+.field-hint { display:block; color:#8f98a0; font-size:12px; margin-top:6px; }
 .btn-save { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; border: none; padding: 12px 28px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
 .btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59,130,246,0.4); }
 .profile-alert { padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; }
@@ -165,11 +174,11 @@ require_once __DIR__ . '/../includes/header.php';
             <form method="POST">
                 <input type="hidden" name="action" value="update_profile">
                 <div class="profile-row">
-                    <div class="form-group"><label>Имя <span style="color:#ef4444;">*</span></label><input type="text" name="name" class="form-control" value="<?= htmlspecialchars($user['name'] ?? '') ?>" required></div>
-                    <div class="form-group"><label>Фамилия <span style="color:#ef4444;">*</span></label><input type="text" name="surname" class="form-control" value="<?= htmlspecialchars($user['surname'] ?? '') ?>" required></div>
+                    <div class="form-group"><label>Имя <span style="color:#ef4444;">*</span></label><input type="text" name="name" class="form-control" value="<?= htmlspecialchars($user['name'] ?? '') ?>" required maxlength="50" pattern="[A-Za-zА-Яа-яЁё -]{2,50}" title="Только русские или латинские буквы, от 2 до 50 символов"></div>
+                    <div class="form-group"><label>Фамилия <span style="color:#ef4444;">*</span></label><input type="text" name="surname" class="form-control" value="<?= htmlspecialchars($user['surname'] ?? '') ?>" required maxlength="50" pattern="[A-Za-zА-Яа-яЁё -]{2,50}" title="Только русские или латинские буквы, от 2 до 50 символов"></div>
                 </div>
-                <div class="form-group"><label>Отчество</label><input type="text" name="patronymic" class="form-control" value="<?= htmlspecialchars($user['patronymic'] ?? '') ?>"></div>
-                <div class="form-group"><label>Телефон</label><input type="tel" name="phone" class="form-control" value="<?= htmlspecialchars($user['phone'] ?? '') ?>" placeholder="+7 (999) 999-99-99"></div>
+                <div class="form-group"><label>Отчество</label><input type="text" name="patronymic" class="form-control" value="<?= htmlspecialchars($user['patronymic'] ?? '') ?>" maxlength="50" pattern="[A-Za-zА-Яа-яЁё -]{2,50}" title="Только русские или латинские буквы"></div>
+                <div class="form-group"><label>Телефон</label><input type="tel" name="phone" class="form-control" value="<?= htmlspecialchars($user['phone'] ?? '') ?>" maxlength="20" pattern="[0-9+() -]{5,20}" placeholder="+7 (999) 999-99-99" title="Только цифры и символы + - ( )"></div>
                 <div class="form-group"><label>Дата регистрации</label><input type="text" class="form-control" value="<?= !empty($user['registration_date']) ? date('d.m.Y', strtotime($user['registration_date'])) : '—' ?>" disabled></div>
                 <button type="submit" class="btn-save"><i class="fas fa-save me-2"></i>Сохранить изменения</button>
             </form>
@@ -180,7 +189,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <h2 class="section-title"><i class="fas fa-at"></i> Смена логина</h2>
                 <form method="POST">
                     <input type="hidden" name="action" value="change_login">
-                    <div class="form-group"><label>Логин (используется для входа)</label><input type="text" name="login" class="form-control" value="<?= htmlspecialchars($user['login'] ?? '') ?>" required minlength="3"></div>
+                    <div class="form-group"><label>Логин (используется для входа)</label><input type="text" name="login" class="form-control" value="<?= htmlspecialchars($user['login'] ?? '') ?>" required minlength="3" maxlength="20" inputmode="numeric" pattern="[0-9]{3,20}" title="Только цифры, от 3 до 20 символов"><small class="field-hint">Только цифры (от 3 до 20)</small></div>
                     <button type="submit" class="btn-save"><i class="fas fa-save me-2"></i>Сохранить логин</button>
                 </form>
             </div>
@@ -189,7 +198,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <h2 class="section-title"><i class="fas fa-envelope"></i> Смена почты</h2>
                 <form method="POST">
                     <input type="hidden" name="action" value="change_email">
-                    <div class="form-group"><label>Электронная почта</label><input type="email" name="email" class="form-control" value="<?= htmlspecialchars($user['email'] ?? '') ?>" required></div>
+                    <div class="form-group"><label>Электронная почта</label><input type="email" name="email" class="form-control" value="<?= htmlspecialchars($user['email'] ?? '') ?>" required maxlength="150"></div>
                     <button type="submit" class="btn-save"><i class="fas fa-save me-2"></i>Сохранить почту</button>
                 </form>
             </div>
@@ -198,9 +207,9 @@ require_once __DIR__ . '/../includes/header.php';
                 <h2 class="section-title"><i class="fas fa-lock"></i> Смена пароля</h2>
                 <form method="POST">
                     <input type="hidden" name="action" value="change_password">
-                    <div class="form-group"><label>Текущий пароль</label><input type="password" name="current_password" class="form-control" required></div>
-                    <div class="form-group"><label>Новый пароль</label><input type="password" name="new_password" class="form-control" required minlength="6"><small style="color:#8f98a0;font-size:12px;">Минимум 6 символов</small></div>
-                    <div class="form-group"><label>Подтвердите новый пароль</label><input type="password" name="confirm_password" class="form-control" required minlength="6"></div>
+                    <div class="form-group"><label>Текущий пароль</label><input type="password" name="current_password" class="form-control" required maxlength="72"></div>
+                    <div class="form-group"><label>Новый пароль</label><input type="password" name="new_password" class="form-control" required minlength="6" maxlength="72"><small class="field-hint">От 6 до 72 символов</small></div>
+                    <div class="form-group"><label>Подтвердите новый пароль</label><input type="password" name="confirm_password" class="form-control" required minlength="6" maxlength="72"></div>
                     <button type="submit" class="btn-save"><i class="fas fa-key me-2"></i>Сменить пароль</button>
                 </form>
             </div>
