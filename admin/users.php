@@ -58,7 +58,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $password = $_POST['password'] ?? '';
         if (!in_array($role, ['user','admin'])) $role = 'user';
 
-        if (!isValidName($name)) {
+        if ($action === 'edit' && $uid === $selfId && $role !== 'admin') {
+            $error = 'Нельзя снять с себя роль администратора';
+        } elseif (!isValidName($name)) {
             $error = 'Имя: только русские или латинские буквы (от 2 до 50 символов)';
         } elseif (!isValidName($surname)) {
             $error = 'Фамилия: только русские или латинские буквы (от 2 до 50 символов)';
@@ -85,12 +87,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $stmt->execute([$name, $surname, $patronymic !== '' ? $patronymic : null, $login, $email, $hash, date('Y-m-d'), $role]);
                         $success = 'Пользователь добавлен';
                     } else {
+                        // При назначении роли администратора снимаем блокировку обратной связи (админы не могут быть заблокированы).
+                        $blockReset = $role === 'admin' ? ', feedback_blocked = 0' : '';
                         if ($password !== '') {
                             $hash = password_hash($password, PASSWORD_BCRYPT);
-                            $stmt = $pdo->prepare("UPDATE `user` SET name=?, surname=?, patronymic=?, login=?, role=?, password=? WHERE id_user=?");
+                            $stmt = $pdo->prepare("UPDATE `user` SET name=?, surname=?, patronymic=?, login=?, role=?, password=?$blockReset WHERE id_user=?");
                             $stmt->execute([$name, $surname, $patronymic !== '' ? $patronymic : null, $login, $role, $hash, $uid]);
                         } else {
-                            $stmt = $pdo->prepare("UPDATE `user` SET name=?, surname=?, patronymic=?, login=?, role=? WHERE id_user=?");
+                            $stmt = $pdo->prepare("UPDATE `user` SET name=?, surname=?, patronymic=?, login=?, role=?$blockReset WHERE id_user=?");
                             $stmt->execute([$name, $surname, $patronymic !== '' ? $patronymic : null, $login, $role, $uid]);
                         }
                         if ($uid === $selfId) { $_SESSION['user_role'] = $role; $_SESSION['user_login'] = $login; }
@@ -166,7 +170,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <div><label>Фамилия *</label><input type="text" name="surname" id="f-surname" maxlength="50" pattern="[A-Za-zА-Яа-яЁё -]{2,50}" title="Только русские или латинские буквы" required></div>
                 <div><label>Отчество</label><input type="text" name="patronymic" id="f-patronymic" maxlength="50" pattern="[A-Za-zА-Яа-яЁё -]{2,50}" title="Только русские или латинские буквы"></div>
                 <div><label>Логин (только цифры) *</label><input type="text" name="login" id="f-login" inputmode="numeric" minlength="3" maxlength="20" pattern="[0-9]{3,20}" title="Только цифры, от 3 до 20" required><small>Только цифры (от 3 до 20)</small></div>
-                <div><label>Роль</label><select name="role" id="f-role"><option value="user">Пользователь</option><option value="admin">Администратор</option></select></div>
+                <div><label>Роль</label><select name="role" id="f-role"><option value="user">Пользователь</option><option value="admin">Администратор</option></select><small id="role-hint" style="display:none;">Нельзя снять роль администратора с себя</small></div>
                 <div><label>Пароль <span id="pass-star">*</span></label><input type="password" name="password" id="f-password" minlength="6" maxlength="72"><small id="pass-hint">От 6 до 72 символов</small></div>
             </div>
             <div class="us-form-actions">
@@ -225,13 +229,17 @@ require_once __DIR__ . '/../includes/header.php';
 </div>
 
 <script>
+const SELF_ID = <?= $selfId ?>;
 function showAddForm() {
     document.getElementById('form-action').value = 'add';
     document.getElementById('form-id').value = '0';
     document.getElementById('form-title').textContent = 'Новый пользователь';
     document.getElementById('submit-btn').innerHTML = '<i class="fas fa-save"></i> Создать';
     ['name','surname','patronymic','login','password'].forEach(function(k){ document.getElementById('f-' + k).value = ''; });
-    document.getElementById('f-role').value = 'user';
+    var roleSel = document.getElementById('f-role');
+    roleSel.value = 'user';
+    roleSel.disabled = false;
+    document.getElementById('role-hint').style.display = 'none';
     document.getElementById('f-password').setAttribute('required', 'required');
     document.getElementById('pass-star').style.display = '';
     document.getElementById('pass-hint').textContent = 'От 6 до 72 символов';
@@ -248,7 +256,17 @@ function editUser(btn) {
     document.getElementById('f-surname').value = btn.getAttribute('data-surname');
     document.getElementById('f-patronymic').value = btn.getAttribute('data-patronymic');
     document.getElementById('f-login').value = btn.getAttribute('data-login');
-    document.getElementById('f-role').value = btn.getAttribute('data-role');
+    var roleSel = document.getElementById('f-role');
+    roleSel.value = btn.getAttribute('data-role');
+    // Себе нельзя снять роль администратора.
+    if (parseInt(btn.getAttribute('data-id'), 10) === SELF_ID) {
+        roleSel.value = 'admin';
+        roleSel.disabled = true;
+        document.getElementById('role-hint').style.display = 'block';
+    } else {
+        roleSel.disabled = false;
+        document.getElementById('role-hint').style.display = 'none';
+    }
     document.getElementById('f-password').value = '';
     document.getElementById('f-password').removeAttribute('required');
     document.getElementById('pass-star').style.display = 'none';
