@@ -40,7 +40,7 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     <div class="setting-item">
         <div>
             <div class="setting-label">Тёмная тема оформления</div>
-            <div class="setting-description">Включите для тёмной темы, выключите для светлой. Применяется ко всему сайту.</div>
+            <div class="setting-description">По умолчанию включена светлая тема. Включите переключатель для тёмной темы — выбор сохраняется и применяется ко всему сайту.</div>
         </div>
         <label class="toggle-switch"><input type="checkbox" id="themeToggle"><span class="toggle-slider"></span></label>
     </div>
@@ -76,7 +76,8 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
         themeToggle.checked = !isLight();
         themeToggle.addEventListener('change', function(){ setTheme(!this.checked); });
     }
-    function resetSettings(){ if(confirm('Вы уверены, что хотите сбросить все настройки?')){ setTheme(false); } }
+    // Сброс настроек возвращает тему по умолчанию — светлую
+    function resetSettings(){ if(confirm('Вы уверены, что хотите сбросить все настройки?')){ setTheme(true); } }
 </script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

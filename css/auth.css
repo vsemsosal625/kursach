@@ -102,3 +102,60 @@ body.auth-page {
 .auth-alert a { color: inherit; font-weight: 700; text-decoration: underline; }
 .auth-alert.error { background: rgba(239,68,68,0.15); border: 1px solid #ef4444; color: #fca5a5; }
 .auth-alert.success { background: rgba(16,185,129,0.15); border: 1px solid #10b981; color: #6ee7b7; }
+
+/* Кнопка переключения темы (правый верхний угол страниц входа/регистрации) */
+.auth-theme-toggle {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 50;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: #cbd5e1;
+    cursor: pointer;
+    font-size: 17px;
+    transition: all .25s;
+}
+.auth-theme-toggle:hover { background: rgba(255,255,255,0.16); color: #fff; transform: translateY(-1px); }
+
+/* ====== Светлая тема для страниц входа/регистрации ====== */
+html.light-theme body.auth-page { background: #eef2f8; color: #1f2733; }
+html.light-theme .auth-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f6f9fc 100%);
+    border-color: #e3e8ef;
+    box-shadow: 0 10px 30px rgba(15,23,42,0.12);
+}
+html.light-theme .auth-title { color: #0f172a; }
+html.light-theme .form-group label { color: #475569; }
+html.light-theme .auth-input {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #1f2733;
+}
+html.light-theme .auth-input::placeholder { color: #94a3b8; }
+html.light-theme .auth-input:focus {
+    background: #ffffff;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+    color: #0f172a;
+}
+html.light-theme .auth-footer { color: #64748b; }
+html.light-theme .auth-footer a { color: #2563eb; }
+html.light-theme .auth-footer a:hover { color: #1d4ed8; }
+html.light-theme .auth-or { color: #64748b; }
+html.light-theme .btn-guest { background: #eef2f8; border-color: #cbd5e1; color: #475569; }
+html.light-theme .btn-guest:hover { background: #e2e8f0; color: #1f2733; }
+html.light-theme .auth-hint { color: #64748b; }
+html.light-theme .auth-theme-toggle {
+    background: #ffffff;
+    border-color: #d8dee8;
+    color: #475569;
+    box-shadow: 0 2px 8px rgba(15,23,42,0.12);
+}
+html.light-theme .auth-theme-toggle:hover { background: #f1f5f9; color: #1f2733; }

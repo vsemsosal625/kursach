@@ -45,6 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Тема оформления: по умолчанию светлая, тёмная только при явном выборе -->
+    <script>(function(){try{if(localStorage.getItem('siteTheme')!=='dark'){document.documentElement.classList.add('light-theme');}}catch(e){}})();</script>
     <title>Вход | Игровой справочник</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/auth.css">
@@ -55,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 <body class="auth-page">
+    <button type="button" class="auth-theme-toggle" id="authThemeToggle" title="Сменить тему" aria-label="Сменить тему"><i class="fas fa-moon"></i></button>
     <div class="auth-card">
         <h1 class="auth-title"><i class="fas fa-right-to-bracket"></i>Вход в систему</h1>
 
@@ -83,5 +86,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <script src="<?= BASE_URL ?>/js/auth.js"></script>
+    <script>
+    (function(){
+        var btn = document.getElementById('authThemeToggle');
+        if(!btn) return;
+        function syncIcon(){
+            var light = document.documentElement.classList.contains('light-theme');
+            btn.innerHTML = light ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+            btn.setAttribute('title', light ? 'Включить тёмную тему' : 'Включить светлую тему');
+        }
+        syncIcon();
+        btn.addEventListener('click', function(){
+            var light = document.documentElement.classList.toggle('light-theme');
+            try{ localStorage.setItem('siteTheme', light ? 'light' : 'dark'); }catch(e){}
+            syncIcon();
+        });
+    })();
+    </script>
 </body>
 </html>

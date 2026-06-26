@@ -30,8 +30,8 @@ if (!isset($currentPage)) {
     <style>html { overflow-y: scroll; }</style>
     <!-- Базовый URL проекта для использования в скриптах (fetch и т.д.) -->
     <script>window.BASE_URL = '<?= BASE_URL ?>';</script>
-    <!-- Тема оформления (светлая/тёмная) — применяется до отрисовки, чтобы не было мигания -->
-    <script>(function(){try{if(localStorage.getItem('siteTheme')==='light'){document.documentElement.classList.add('light-theme');}}catch(e){}})();</script>
+    <!-- Тема оформления: по умолчанию светлая, тёмная только при явном выборе. Применяется до отрисовки, чтобы не было мигания -->
+    <script>(function(){try{if(localStorage.getItem('siteTheme')!=='dark'){document.documentElement.classList.add('light-theme');}}catch(e){}})();</script>
     <style>
     /* Поисковая строка раздела «Игровые механики» — фиолетовая под дизайн раздела */
     .mechanics-page .search-input:focus { border-color: #8b5cf6; }

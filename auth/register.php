@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = $login . '@local';
             $stmt = $pdo->prepare("INSERT INTO `user` (name, surname, patronymic, phone, login, email, password, registration_date) VALUES (?, ?, NULL, NULL, ?, ?, ?, ?)");
             $stmt->execute([$name, $surname, $login, $email, $hash, $date]);
-            $success = 'Регистрация успешна! <a href="auth.php">Войти</a>';
+            $success = 'Регистрация успешна! <a href=\"auth.php\">Войти</a>';
         }
     }
 }
@@ -48,6 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Тема оформления: по умолчанию светлая, тёмная только при явном выборе -->
+    <script>(function(){try{if(localStorage.getItem('siteTheme')!=='dark'){document.documentElement.classList.add('light-theme');}}catch(e){}})();</script>
     <title>Регистрация | Игровой справочник</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/auth.css">
@@ -59,6 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 <body class="auth-page">
+    <button type="button" class="auth-theme-toggle" id="authThemeToggle" title="Сменить тему" aria-label="Сменить тему"><i class="fas fa-moon"></i></button>
     <div class="auth-card">
         <h2 class="auth-title"><i class="fas fa-user-plus"></i>Регистрация</h2>
 
@@ -113,6 +116,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         p1.addEventListener('input', check);
         p2.addEventListener('input', check);
+    })();
+    </script>
+    <script>
+    (function(){
+        var btn = document.getElementById('authThemeToggle');
+        if(!btn) return;
+        function syncIcon(){
+            var light = document.documentElement.classList.contains('light-theme');
+            btn.innerHTML = light ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+            btn.setAttribute('title', light ? 'Включить тёмную тему' : 'Включить светлую тему');
+        }
+        syncIcon();
+        btn.addEventListener('click', function(){
+            var light = document.documentElement.classList.toggle('light-theme');
+            try{ localStorage.setItem('siteTheme', light ? 'light' : 'dark'); }catch(e){}
+            syncIcon();
+        });
     })();
     </script>
 </body>
