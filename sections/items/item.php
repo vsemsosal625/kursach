@@ -41,7 +41,7 @@ require_once __DIR__ . '/../../includes/header.php';
 ?>
 
 <style>
-.detail-top-bar { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:20px; }
+.detail-top-bar { display:flex; align-items:center; justify-content:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:20px; }
 .detail-top-bar .back-btn { margin-bottom:0; }
 .detail-top-bar .fav-btn { margin:0; }
 </style>
