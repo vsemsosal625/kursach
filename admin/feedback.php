@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $filter = $_GET['status'] ?? 'all';
 if (!in_array($filter, ['all','new','review','resolved','rejected'])) $filter = 'all';
 
-$sql = "SELECT f.*, u.login AS u_login, u.name AS u_name, u.surname AS u_surname, u.feedback_blocked AS u_blocked FROM feedback f LEFT JOIN `user` u ON f.user_id = u.id_user";
+$sql = "SELECT f.*, u.login AS u_login, u.name AS u_name, u.surname AS u_surname, u.patronymic AS u_patronymic, u.feedback_blocked AS u_blocked FROM feedback f LEFT JOIN `user` u ON f.user_id = u.id_user";
 $params = [];
 if ($filter !== 'all') { $sql .= " WHERE f.status = ?"; $params[] = $filter; }
 $sql .= " ORDER BY f.created_date DESC";
@@ -79,6 +79,7 @@ require_once __DIR__ . '/../includes/header.php';
 .fb-badges { display:flex; gap:8px; flex-wrap:wrap; }
 .fb-badge { padding:4px 12px; border-radius:14px; font-size:12px; font-weight:600; color:#fff; }
 .fb-meta { color:#8f98a0; font-size:13px; margin-bottom:12px; display:flex; flex-wrap:wrap; gap:14px; align-items:center; }
+.fb-meta .fb-login { color:#93c5fd; }
 .fb-blocked-tag { background:rgba(239,68,68,0.18); color:#fca5a5; border:1px solid #ef4444; padding:2px 10px; border-radius:12px; font-size:12px; font-weight:600; }
 .fb-content { color:#e0e0e0; line-height:1.7; white-space:pre-wrap; margin-bottom:14px; }
 .fb-response { background:rgba(16,185,129,0.1); border-left:3px solid #10b981; padding:10px 14px; border-radius:6px; color:#c7d0d8; margin-bottom:14px; white-space:pre-wrap; }
@@ -111,8 +112,9 @@ require_once __DIR__ . '/../includes/header.php';
         $st = $f['status'] ?? 'new';
         $pr = $f['priority'] ?? 'medium';
         $blocked = (int)($f['u_blocked'] ?? 0) === 1;
-        $author = trim(($f['u_name'] ?? '') . ' ' . ($f['u_surname'] ?? ''));
-        if ($author === '') $author = $f['u_login'] ?? ('ID ' . ($f['user_id'] ?? '?'));
+        $fio = trim(($f['u_surname'] ?? '') . ' ' . ($f['u_name'] ?? '') . ' ' . ($f['u_patronymic'] ?? ''));
+        $ulogin = $f['u_login'] ?? '';
+        if ($fio === '') $fio = $ulogin !== '' ? $ulogin : ('ID ' . ($f['user_id'] ?? '?'));
     ?>
         <div class="fb-card">
             <div class="fb-top">
@@ -124,7 +126,8 @@ require_once __DIR__ . '/../includes/header.php';
             </div>
             <div class="fb-meta">
                 <span><?= $typeLabels[$f['type'] ?? 'other'] ?? htmlspecialchars($f['type'] ?? '') ?></span>
-                <span><i class="fas fa-user"></i> <?= htmlspecialchars($author) ?></span>
+                <span><i class="fas fa-user"></i> <?= htmlspecialchars($fio) ?></span>
+                <?php if ($ulogin !== ''): ?><span class="fb-login"><i class="fas fa-at"></i> логин: <?= htmlspecialchars($ulogin) ?></span><?php endif; ?>
                 <span><i class="far fa-calendar"></i> <?= !empty($f['created_date']) ? date('d.m.Y H:i', strtotime($f['created_date'])) : '' ?></span>
                 <?php if ($blocked): ?><span class="fb-blocked-tag"><i class="fas fa-ban"></i> Обратная связь заблокирована</span><?php endif; ?>
             </div>

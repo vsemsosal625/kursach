@@ -42,7 +42,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $patronymic = trim($_POST['patronymic'] ?? '');
         $phone = trim($_POST['phone'] ?? '');
         $login = trim($_POST['login'] ?? '');
-        $email = trim($_POST['email'] ?? '');
         $role = $_POST['role'] ?? 'user';
         $password = $_POST['password'] ?? '';
         if (!in_array($role, ['user','admin'])) $role = 'user';
@@ -55,8 +54,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Отчество: только русские или латинские буквы (от 2 до 50 символов)';
         } elseif (!isValidLogin($login)) {
             $error = 'Логин должен состоять только из цифр (от 3 до 20 цифр)';
-        } elseif (!isValidEmail($email)) {
-            $error = 'Введите корректный email с существующим доменом';
         } elseif (!isValidPhone($phone)) {
             $error = 'Телефон может содержать только цифры и символы + - ( )';
         } elseif ($action === 'add' && (strlen($password) < 6 || strlen($password) > 72)) {
@@ -66,27 +63,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $chk = $pdo->prepare("SELECT id_user FROM `user` WHERE login = ? AND id_user <> ?");
             $chk->execute([$login, $uid]);
-            $chkE = $pdo->prepare("SELECT id_user FROM `user` WHERE email = ? AND id_user <> ?");
-            $chkE->execute([$email, $uid]);
             if ($chk->fetch()) {
                 $error = 'Пользователь с таким логином уже существует';
-            } elseif ($chkE->fetch()) {
-                $error = 'Пользователь с такой почтой уже существует';
             } else {
                 try {
                     if ($action === 'add') {
                         $hash = password_hash($password, PASSWORD_BCRYPT);
+                        // email больше не используется, но колонка в БД NOT NULL UNIQUE — пишем техническое значение.
+                        $email = $login . '@local';
                         $stmt = $pdo->prepare("INSERT INTO `user` (name, surname, patronymic, phone, login, email, password, registration_date, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
                         $stmt->execute([$name, $surname, $patronymic !== '' ? $patronymic : null, $phone !== '' ? $phone : null, $login, $email, $hash, date('Y-m-d'), $role]);
                         $success = 'Пользователь добавлен';
                     } else {
                         if ($password !== '') {
                             $hash = password_hash($password, PASSWORD_BCRYPT);
-                            $stmt = $pdo->prepare("UPDATE `user` SET name=?, surname=?, patronymic=?, phone=?, login=?, email=?, role=?, password=? WHERE id_user=?");
-                            $stmt->execute([$name, $surname, $patronymic !== '' ? $patronymic : null, $phone !== '' ? $phone : null, $login, $email, $role, $hash, $uid]);
+                            $stmt = $pdo->prepare("UPDATE `user` SET name=?, surname=?, patronymic=?, phone=?, login=?, role=?, password=? WHERE id_user=?");
+                            $stmt->execute([$name, $surname, $patronymic !== '' ? $patronymic : null, $phone !== '' ? $phone : null, $login, $role, $hash, $uid]);
                         } else {
-                            $stmt = $pdo->prepare("UPDATE `user` SET name=?, surname=?, patronymic=?, phone=?, login=?, email=?, role=? WHERE id_user=?");
-                            $stmt->execute([$name, $surname, $patronymic !== '' ? $patronymic : null, $phone !== '' ? $phone : null, $login, $email, $role, $uid]);
+                            $stmt = $pdo->prepare("UPDATE `user` SET name=?, surname=?, patronymic=?, phone=?, login=?, role=? WHERE id_user=?");
+                            $stmt->execute([$name, $surname, $patronymic !== '' ? $patronymic : null, $phone !== '' ? $phone : null, $login, $role, $uid]);
                         }
                         if ($uid === $selfId) { $_SESSION['user_role'] = $role; $_SESSION['user_login'] = $login; }
                         $success = 'Данные пользователя обновлены';
@@ -161,7 +156,6 @@ require_once __DIR__ . '/../includes/header.php';
                 <div><label>Отчество</label><input type="text" name="patronymic" id="f-patronymic" maxlength="50" pattern="[A-Za-zА-Яа-яЁё -]{2,50}" title="Только русские или латинские буквы"></div>
                 <div><label>Телефон</label><input type="tel" name="phone" id="f-phone" maxlength="20" pattern="[0-9+() -]{5,20}" title="Только цифры и символы + - ( )"></div>
                 <div><label>Логин (только цифры) *</label><input type="text" name="login" id="f-login" inputmode="numeric" minlength="3" maxlength="20" pattern="[0-9]{3,20}" title="Только цифры, от 3 до 20" required><small>Только цифры (от 3 до 20)</small></div>
-                <div><label>Email *</label><input type="email" name="email" id="f-email" maxlength="150" required></div>
                 <div><label>Роль</label><select name="role" id="f-role"><option value="user">Пользователь</option><option value="admin">Администратор</option></select></div>
                 <div><label>Пароль <span id="pass-star">*</span></label><input type="password" name="password" id="f-password" minlength="6" maxlength="72"><small id="pass-hint">От 6 до 72 символов</small></div>
             </div>
@@ -174,7 +168,7 @@ require_once __DIR__ . '/../includes/header.php';
 
     <table class="users-table">
         <thead>
-            <tr><th>ID</th><th>ФИО</th><th>Логин</th><th>Email</th><th>Роль</th><th>Обратная связь</th><th>Действия</th></tr>
+            <tr><th>ID</th><th>ФИО</th><th>Логин</th><th>Роль</th><th>Обратная связь</th><th>Действия</th></tr>
         </thead>
         <tbody>
         <?php foreach ($users as $u):
@@ -186,7 +180,6 @@ require_once __DIR__ . '/../includes/header.php';
                 <td><?= $uid ?></td>
                 <td><?= htmlspecialchars(trim(($u['surname'] ?? '') . ' ' . ($u['name'] ?? '') . ' ' . ($u['patronymic'] ?? ''))) ?></td>
                 <td><?= htmlspecialchars($u['login'] ?? '') ?></td>
-                <td><?= htmlspecialchars($u['email'] ?? '') ?></td>
                 <td><span class="role-badge role-<?= $urole === 'admin' ? 'admin' : 'user' ?>"><?= $urole === 'admin' ? 'Администратор' : 'Пользователь' ?></span></td>
                 <td><?= $blocked ? '<span class="blk blk-on">Заблокирована</span>' : '<span class="blk blk-off">Активна</span>' ?></td>
                 <td>
@@ -198,7 +191,6 @@ require_once __DIR__ . '/../includes/header.php';
                             data-patronymic="<?= htmlspecialchars($u['patronymic'] ?? '', ENT_QUOTES) ?>"
                             data-phone="<?= htmlspecialchars($u['phone'] ?? '', ENT_QUOTES) ?>"
                             data-login="<?= htmlspecialchars($u['login'] ?? '', ENT_QUOTES) ?>"
-                            data-email="<?= htmlspecialchars($u['email'] ?? '', ENT_QUOTES) ?>"
                             data-role="<?= htmlspecialchars($urole, ENT_QUOTES) ?>"><i class="fas fa-edit"></i> Изменить</button>
                         <form method="post" style="display:inline;" onsubmit="return confirm('Изменить доступ к обратной связи?');">
                             <input type="hidden" name="action" value="toggle_block">
@@ -226,7 +218,7 @@ function showAddForm() {
     document.getElementById('form-id').value = '0';
     document.getElementById('form-title').textContent = 'Новый пользователь';
     document.getElementById('submit-btn').innerHTML = '<i class="fas fa-save"></i> Создать';
-    ['name','surname','patronymic','phone','login','email','password'].forEach(function(k){ document.getElementById('f-' + k).value = ''; });
+    ['name','surname','patronymic','phone','login','password'].forEach(function(k){ document.getElementById('f-' + k).value = ''; });
     document.getElementById('f-role').value = 'user';
     document.getElementById('f-password').setAttribute('required', 'required');
     document.getElementById('pass-star').style.display = '';
@@ -245,7 +237,6 @@ function editUser(btn) {
     document.getElementById('f-patronymic').value = btn.getAttribute('data-patronymic');
     document.getElementById('f-phone').value = btn.getAttribute('data-phone');
     document.getElementById('f-login').value = btn.getAttribute('data-login');
-    document.getElementById('f-email').value = btn.getAttribute('data-email');
     document.getElementById('f-role').value = btn.getAttribute('data-role');
     document.getElementById('f-password').value = '';
     document.getElementById('f-password').removeAttribute('required');

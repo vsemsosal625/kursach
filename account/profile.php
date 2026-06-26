@@ -19,7 +19,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $name = trim($_POST['name'] ?? '');
         $surname = trim($_POST['surname'] ?? '');
         $patronymic = trim($_POST['patronymic'] ?? '');
-        $phone = trim($_POST['phone'] ?? '');
         if (empty($name) || empty($surname)) {
             $error = 'Заполните имя и фамилию';
         } elseif (!isValidName($name)) {
@@ -28,14 +27,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $error = 'Фамилия может содержать только русские или латинские буквы (от 2 до 50 символов)';
         } elseif ($patronymic !== '' && !isValidName($patronymic)) {
             $error = 'Отчество может содержать только русские или латинские буквы (от 2 до 50 символов)';
-        } elseif (!isValidPhone($phone)) {
-            $error = 'Телефон может содержать только цифры и символы + - ( )';
         } else {
             try {
-                $stmt = $pdo->prepare("UPDATE `user` SET name = ?, surname = ?, patronymic = ?, phone = ? WHERE id_user = ?");
-                $stmt->execute([$name, $surname, $patronymic !== '' ? $patronymic : null, $phone !== '' ? $phone : null, $userId]);
+                $stmt = $pdo->prepare("UPDATE `user` SET name = ?, surname = ?, patronymic = ? WHERE id_user = ?");
+                $stmt->execute([$name, $surname, $patronymic !== '' ? $patronymic : null, $userId]);
                 $success = 'Профиль успешно обновлён';
-                $user['name'] = $name; $user['surname'] = $surname; $user['patronymic'] = $patronymic; $user['phone'] = $phone;
+                $user['name'] = $name; $user['surname'] = $surname; $user['patronymic'] = $patronymic;
             } catch (Exception $e) {
                 $error = 'Ошибка обновления: ' . $e->getMessage();
             }
@@ -61,27 +58,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $success = 'Логин успешно изменён';
                 } catch (Exception $e) {
                     $error = 'Ошибка смены логина: ' . $e->getMessage();
-                }
-            }
-        }
-    } elseif ($_POST['action'] === 'change_email') {
-        $activeTab = 'security';
-        $newEmail = trim($_POST['email'] ?? '');
-        if (empty($newEmail) || !isValidEmail($newEmail)) {
-            $error = 'Введите корректный email с существующим доменом';
-        } else {
-            $chk = $pdo->prepare("SELECT id_user FROM `user` WHERE email = ? AND id_user <> ?");
-            $chk->execute([$newEmail, $userId]);
-            if ($chk->fetch()) {
-                $error = 'Этот email уже используется';
-            } else {
-                try {
-                    $stmt = $pdo->prepare("UPDATE `user` SET email = ? WHERE id_user = ?");
-                    $stmt->execute([$newEmail, $userId]);
-                    $user['email'] = $newEmail;
-                    $success = 'Email успешно изменён';
-                } catch (Exception $e) {
-                    $error = 'Ошибка смены email: ' . $e->getMessage();
                 }
             }
         }
@@ -178,7 +154,6 @@ require_once __DIR__ . '/../includes/header.php';
                     <div class="form-group"><label>Фамилия <span style="color:#ef4444;">*</span></label><input type="text" name="surname" class="form-control" value="<?= htmlspecialchars($user['surname'] ?? '') ?>" required maxlength="50" pattern="[A-Za-zА-Яа-яЁё -]{2,50}" title="Только русские или латинские буквы, от 2 до 50 символов"></div>
                 </div>
                 <div class="form-group"><label>Отчество</label><input type="text" name="patronymic" class="form-control" value="<?= htmlspecialchars($user['patronymic'] ?? '') ?>" maxlength="50" pattern="[A-Za-zА-Яа-яЁё -]{2,50}" title="Только русские или латинские буквы"></div>
-                <div class="form-group"><label>Телефон</label><input type="tel" name="phone" class="form-control" value="<?= htmlspecialchars($user['phone'] ?? '') ?>" maxlength="20" pattern="[0-9+() -]{5,20}" placeholder="+7 (999) 999-99-99" title="Только цифры и символы + - ( )"></div>
                 <div class="form-group"><label>Дата регистрации</label><input type="text" class="form-control" value="<?= !empty($user['registration_date']) ? date('d.m.Y', strtotime($user['registration_date'])) : '—' ?>" disabled></div>
                 <button type="submit" class="btn-save"><i class="fas fa-save me-2"></i>Сохранить изменения</button>
             </form>
@@ -191,15 +166,6 @@ require_once __DIR__ . '/../includes/header.php';
                     <input type="hidden" name="action" value="change_login">
                     <div class="form-group"><label>Логин (используется для входа)</label><input type="text" name="login" class="form-control" value="<?= htmlspecialchars($user['login'] ?? '') ?>" required minlength="3" maxlength="20" inputmode="numeric" pattern="[0-9]{3,20}" title="Только цифры, от 3 до 20 символов"><small class="field-hint">Только цифры (от 3 до 20)</small></div>
                     <button type="submit" class="btn-save"><i class="fas fa-save me-2"></i>Сохранить логин</button>
-                </form>
-            </div>
-
-            <div class="security-block">
-                <h2 class="section-title"><i class="fas fa-envelope"></i> Смена почты</h2>
-                <form method="POST">
-                    <input type="hidden" name="action" value="change_email">
-                    <div class="form-group"><label>Электронная почта</label><input type="email" name="email" class="form-control" value="<?= htmlspecialchars($user['email'] ?? '') ?>" required maxlength="150"></div>
-                    <button type="submit" class="btn-save"><i class="fas fa-save me-2"></i>Сохранить почту</button>
                 </form>
             </div>
 
